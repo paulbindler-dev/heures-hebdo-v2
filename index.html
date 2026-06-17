@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>Heures Hebdo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -64,6 +64,8 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 
 .btn-secondary{font-family:var(--sans);font-size:12px;font-weight:500;background:var(--surface);color:var(--text);border:1px solid var(--border2);border-radius:var(--r);padding:0 14px;cursor:pointer;white-space:nowrap;transition:background .12s;flex-shrink:0;}
 .btn-secondary:hover{background:var(--bg);}
+/* iOS anti-zoom — 16px min sur mobile uniquement */
+@media (max-width:768px){.url-input,.url-bar input{font-size:16px;}}
 </style>
 </head>
 <body>
