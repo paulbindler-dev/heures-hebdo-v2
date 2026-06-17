@@ -328,8 +328,7 @@ async function loadWeek(wk) {
 }
 async function saveWeek(wk, weekData) {
   const { error } = await sb.from('weeks').upsert(
-    { slug: SLUG, week_key: wk, data: weekData },
-    { onConflict: 'slug,week_key' }
+    { slug: SLUG, week_key: wk, data: weekData }
   );
   if (error) { console.error('saveWeek:', error); showToast('⚠ Erreur sauvegarde : ' + error.message); }
 }
