@@ -314,22 +314,33 @@ const SLUG = window.location.pathname.replace(/^\/+|\/+$/g, '');
 if (!SLUG) window.location.href = '/';
 
 async function ensureUser() {
-  const { data } = await sb.from('users').select('slug').eq('slug', SLUG).maybeSingle();
-  if (!data) await sb.from('users').insert({ slug: SLUG });
+  const { data, error: selErr } = await sb.from('users').select('slug').eq('slug', SLUG).maybeSingle();
+  if (selErr) throw new Error('Lecture utilisateur : ' + selErr.message);
+  if (!data) {
+    const { error: insErr } = await sb.from('users').insert({ slug: SLUG });
+    if (insErr) throw new Error('Création utilisateur : ' + insErr.message);
+  }
 }
 async function loadWeek(wk) {
-  const { data } = await sb.from('weeks').select('data').eq('slug', SLUG).eq('week_key', wk).maybeSingle();
+  const { data, error } = await sb.from('weeks').select('data').eq('slug', SLUG).eq('week_key', wk).maybeSingle();
+  if (error) throw new Error('Lecture semaine : ' + error.message);
   return data ? data.data : null;
 }
-function saveWeek(wk, weekData) {
-  sb.from('weeks').upsert({ slug: SLUG, week_key: wk, data: weekData }, { onConflict: 'slug,week_key' });
+async function saveWeek(wk, weekData) {
+  const { error } = await sb.from('weeks').upsert(
+    { slug: SLUG, week_key: wk, data: weekData },
+    { onConflict: 'slug,week_key' }
+  );
+  if (error) { console.error('saveWeek:', error); showToast('⚠ Erreur sauvegarde : ' + error.message); }
 }
 async function loadTemplate() {
-  const { data } = await sb.from('users').select('template').eq('slug', SLUG).maybeSingle();
+  const { data, error } = await sb.from('users').select('template').eq('slug', SLUG).maybeSingle();
+  if (error) throw new Error('Lecture template : ' + error.message);
   return (data && data.template) ? data.template : JSON.parse(JSON.stringify(DEFAULT_TPL));
 }
-function saveTemplate(tpl) {
-  sb.from('users').update({ template: tpl }).eq('slug', SLUG);
+async function saveTemplate(tpl) {
+  const { error } = await sb.from('users').update({ template: tpl }).eq('slug', SLUG);
+  if (error) { console.error('saveTemplate:', error); showToast('⚠ Erreur sauvegarde template : ' + error.message); }
 }
 
 // --- Constants ---
@@ -894,7 +905,11 @@ async function init(){
   } catch(err) {
     console.error('Erreur de chargement :', err);
     document.getElementById('loadingScreen').innerHTML =
-      '<div style="text-align:center;font-family:var(--sans);"><div style="font-size:13px;color:#DC2626;margin-bottom:8px;">Erreur de connexion</div><div style="font-size:11px;color:#A09E98;">Vérifie ta connexion et recharge la page.</div></div>';
+      `<div style="text-align:center;font-family:var(--sans);padding:24px;max-width:360px;">
+        <div style="font-size:13px;color:#DC2626;margin-bottom:8px;font-weight:600;">Erreur de connexion Supabase</div>
+        <div style="font-size:11px;color:#5C5B57;margin-bottom:12px;line-height:1.6;">${err.message}</div>
+        <div style="font-size:10px;color:#A09E98;">Recharge la page ou contacte l'admin.</div>
+      </div>`;
     return;
   }
   document.getElementById('loadingScreen').remove();
