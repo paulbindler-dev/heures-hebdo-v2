@@ -483,9 +483,9 @@ function makeInput(val,times,onChange,opts={}){
   if(opts.autoVal){inp.value=opts.autoVal;inp.classList.add('auto-val');inp.title='Calculée automatiquement — modifiable';}
   else inp.value=val||'';
 
-  inp.addEventListener('click',()=>inp.select());
+  inp.addEventListener('click',()=>inp.setSelectionRange(0,9999));
   inp.addEventListener('focus',()=>{
-    requestAnimationFrame(()=>inp.select());
+    inp.setSelectionRange(0,9999);
     if(_tabbing){_tabbing=false;return;}
     if(inp.classList.contains('auto-val'))inp.value='';
     inp.classList.remove('auto-val');
@@ -623,9 +623,9 @@ function buildTable(tbodyEl,theadEl,dayData,opts={}){
           inp.type='text';inp.className='ti auto-val';inp.placeholder='--:--';
           inp.value=pAuto||'';inp.title='Calculée auto — modifier pour ajuster l\'arrivée ap-m';
           inp.dataset.tabday=dk;inp.dataset.tabfield='pause';
-          inp.addEventListener('click',()=>inp.select());
+          inp.addEventListener('click',()=>inp.setSelectionRange(0,9999));
           inp.addEventListener('focus',()=>{
-            requestAnimationFrame(()=>inp.select());
+            inp.setSelectionRange(0,9999);
             if(_tabbing){_tabbing=false;return;}
             inp.classList.remove('auto-val');
             openPicker(inp,pauseTimes(),'01:00',v=>{inp.value=v;inp.classList.remove('auto-val');applyPause(dk,v,dayData,isT);});
