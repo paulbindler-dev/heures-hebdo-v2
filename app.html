@@ -405,6 +405,7 @@ let data={};
 let currentTpl=null;
 let copiedDay=null;
 let tplCopiedDay=null;
+let _tabTarget=null;
 
 function calcDay(day,ignoreExtras){
   if(day.ferie)return null;
@@ -484,6 +485,7 @@ function makeInput(val,times,onChange,opts={}){
   else inp.value=val||'';
 
   inp.addEventListener('mousedown',()=>{setTimeout(()=>inp.select(),0);});
+  inp.addEventListener('click',()=>{setTimeout(()=>inp.select(),0);});
   inp.addEventListener('focus',()=>{
     setTimeout(()=>inp.select(),0);
     if(_tabbing){_tabbing=false;return;}
@@ -507,7 +509,11 @@ function makeInput(val,times,onChange,opts={}){
       const idx=inputs.indexOf(inp);
       if(idx>=0){
         const next=e.shiftKey?inputs[idx-1]:inputs[idx+1];
-        if(next){closePicker();_tabbing=true;next.focus();}
+        if(next){
+          closePicker();_tabbing=true;
+          if(next.dataset.tabday&&next.dataset.tabfield)_tabTarget={day:next.dataset.tabday,field:next.dataset.tabfield};
+          next.focus();
+        }
       }
       return;
     }
@@ -839,6 +845,13 @@ function render(){
   rerenderTotals(data[WK],'');
   updateStats();
   setTimeout(applyTableWidths,0);
+  if(_tabTarget){
+    const t=_tabTarget;_tabTarget=null;
+    setTimeout(()=>{
+      const el=document.querySelector(`[data-tabday="${t.day}"][data-tabfield="${t.field}"]`);
+      if(el){_tabbing=true;el.focus();}
+    },0);
+  }
 }
 
 // --- Template button handlers ---
@@ -891,6 +904,26 @@ function fixColumnWidths(){
   for(let i=1;i<cols.length;i++)cols[i].style.width='';
 }
 
+// --- Jours fériés France ---
+function getEaster(y){
+  const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4;
+  const f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3);
+  const h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4;
+  const l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451);
+  const mo=Math.floor((h+l-7*m+114)/31)-1,day=((h+l-7*m+114)%31)+1;
+  return new Date(y,mo,day);
+}
+function getFrenchHolidays(y){
+  const e=getEaster(y);
+  const add=(d,n)=>{const r=new Date(d);r.setDate(r.getDate()+n);return r;};
+  const k=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  return new Set([
+    `${y}-01-01`,`${y}-05-01`,`${y}-05-08`,`${y}-07-14`,
+    `${y}-08-15`,`${y}-11-01`,`${y}-11-11`,`${y}-12-25`,
+    k(add(e,1)),k(add(e,39)),k(add(e,50)),
+  ]);
+}
+
 // --- Async init ---
 async function init(){
   try {
@@ -903,6 +936,14 @@ async function init(){
       if(!data[WK][d].extras)data[WK][d].extras=[];
       if(data[WK][d].ferie===undefined)data[WK][d].ferie=false;
     });
+    if(!weekData){
+      const holidays=getFrenchHolidays(new Date().getFullYear());
+      DAYS.forEach((dk,di)=>{
+        const d=new Date(WK);d.setDate(d.getDate()+di);
+        const k=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        if(holidays.has(k))data[WK][dk].ferie=true;
+      });
+    }
     render();
     applyTableWidths();
     fixColumnWidths();

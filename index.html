@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root {
@@ -66,10 +67,23 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .btn-secondary:hover{background:var(--bg);}
 /* iOS anti-zoom — 16px min sur mobile uniquement */
 @media (max-width:768px){.url-input,.url-bar input{font-size:16px;}}
+
+/* Pin screen */
+.pin-sub{font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.5;}
+.url-copy-bar{display:flex;align-items:center;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--r);overflow:hidden;margin-bottom:16px;}
+.pin-url-text{font-family:var(--mono);font-size:11px;color:var(--text2);padding:10px 12px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;user-select:all;}
+.btn-copy{font-family:var(--sans);font-size:11px;font-weight:500;background:var(--surface);color:var(--text2);border:none;border-left:1px solid var(--border2);padding:10px 14px;cursor:pointer;white-space:nowrap;transition:background .12s,color .12s;flex-shrink:0;}
+.btn-copy:hover{background:var(--bg);color:var(--text);}
+.btn-copy.copied{color:var(--green);}
+.pin-instructions{display:flex;flex-direction:column;gap:8px;margin-bottom:16px;}
+.pin-step{padding:11px 14px;background:var(--surface2);border-radius:var(--r);border:1px solid var(--border);}
+.pin-step-label{font-size:10px;font-weight:700;letter-spacing:0.09em;text-transform:uppercase;color:var(--text3);margin-bottom:4px;}
+.pin-step-text{font-size:12px;color:var(--text2);line-height:1.6;}
+.pin-kbd{display:inline-block;font-family:var(--mono);font-size:10px;background:var(--bg);border:1px solid var(--border2);border-radius:4px;padding:1px 5px;color:var(--text3);}
 </style>
 </head>
 <body>
-<div class="welcome">
+<div class="welcome" id="screenWelcome">
 
   <div class="welcome-header">
     <div class="app-name">Heures Hebdo</div>
@@ -107,58 +121,145 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 
 </div>
 
+<!-- Écran 2 : Épingle ton URL -->
+<div class="welcome" id="screenPin" style="display:none">
+  <div class="welcome-header">
+    <div class="app-name">Heures Hebdo</div>
+    <div class="app-tagline">Ton espace est prêt.<br>Épingle cette URL pour ne plus jamais la perdre.</div>
+  </div>
+  <div class="card">
+    <div class="card-title">Ton URL personnelle</div>
+    <p class="pin-sub">C'est ton accès permanent, sur tous tes appareils.</p>
+    <div class="url-copy-bar">
+      <span id="pinUrl" class="pin-url-text"></span>
+      <button id="btnCopy" class="btn-copy">Copier</button>
+    </div>
+    <div class="pin-instructions">
+      <div class="pin-step">
+        <div class="pin-step-label">Ordinateur</div>
+        <div class="pin-step-text">Ajoute cette page à tes favoris&nbsp;<span class="pin-kbd">Cmd+D</span>&nbsp;(Mac) ou&nbsp;<span class="pin-kbd">Ctrl+D</span>&nbsp;(PC)</div>
+      </div>
+      <div class="pin-step">
+        <div class="pin-step-label">iPhone — Safari</div>
+        <div class="pin-step-text">Appuie sur <span class="pin-kbd">⬆</span> en bas → "Sur l'écran d'accueil"</div>
+      </div>
+      <div class="pin-step">
+        <div class="pin-step-label">Android — Chrome</div>
+        <div class="pin-step-text">Menu <span class="pin-kbd">⋮</span> → "Ajouter à l'écran d'accueil"</div>
+      </div>
+    </div>
+    <button class="btn-primary" id="btnGo">Accéder à mon espace →</button>
+  </div>
+</div>
+
 <script>
+const SUPABASE_URL     = 'https://hmznrhoxeptkmstyavbc.supabase.co';
+const SUPABASE_ANON_KEY= 'sb_publishable_pWEsnpJBGmTpF-3HSqpSxg_fufOVNrF';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 const slugInput  = document.getElementById('slugInput');
 const urlBar     = document.getElementById('urlBar');
 const fieldHint  = document.getElementById('fieldHint');
 const btnCreate  = document.getElementById('btnCreate');
 
 function validateSlug(v) {
-  if (!v)                             return { ok: false, msg: 'Lettres minuscules, chiffres et tirets uniquement.', cls: 'neutral' };
-  if (v.length < 3)                   return { ok: false, msg: 'Au moins 3 caractères.', cls: 'err' };
-  if (!/^[a-z0-9-]+$/.test(v))       return { ok: false, msg: 'Uniquement des lettres minuscules, chiffres et tirets.', cls: 'err' };
-  if (v.startsWith('-')||v.endsWith('-')) return { ok: false, msg: 'Ne peut pas commencer ou finir par un tiret.', cls: 'err' };
-  if (v.includes('--'))               return { ok: false, msg: 'Pas de tirets consécutifs.', cls: 'err' };
-  // "Disponible" check will be replaced by a real Supabase availability check in step 3
-  return { ok: true, msg: '✓ Identifiant disponible', cls: 'ok' };
+  if (!v)                                 return { ok:false, msg:'Lettres minuscules, chiffres et tirets uniquement.', cls:'neutral' };
+  if (v.length < 3)                       return { ok:false, msg:'Au moins 3 caractères.', cls:'err' };
+  if (!/^[a-z0-9-]+$/.test(v))           return { ok:false, msg:'Uniquement des lettres minuscules, chiffres et tirets.', cls:'err' };
+  if (v.startsWith('-')||v.endsWith('-')) return { ok:false, msg:'Ne peut pas commencer ou finir par un tiret.', cls:'err' };
+  if (v.includes('--'))                   return { ok:false, msg:'Pas de tirets consécutifs.', cls:'err' };
+  return { ok:true };
+}
+
+let _checkTimer=null;
+
+async function checkAvailability(slug) {
+  fieldHint.textContent='Vérification…';
+  fieldHint.className='field-hint neutral';
+  urlBar.className='url-bar';
+  btnCreate.disabled=true;
+  const { data } = await sb.from('users').select('slug').eq('slug',slug).maybeSingle();
+  if (data) {
+    fieldHint.textContent='✗ Identifiant déjà pris.';
+    fieldHint.className='field-hint err';
+    urlBar.className='url-bar invalid';
+  } else {
+    fieldHint.textContent='✓ Identifiant disponible';
+    fieldHint.className='field-hint ok';
+    urlBar.className='url-bar valid';
+    btnCreate.disabled=false;
+  }
 }
 
 slugInput.addEventListener('input', () => {
-  // Auto-lowercase and strip invalid chars
-  const clean = slugInput.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
-  if (slugInput.value !== clean) slugInput.value = clean;
-
-  const { ok, msg, cls } = validateSlug(clean);
-  fieldHint.textContent = msg;
-  fieldHint.className   = 'field-hint ' + cls;
-  urlBar.className      = 'url-bar' + (ok ? ' valid' : clean ? ' invalid' : '');
-  btnCreate.disabled    = !ok;
+  const clean=slugInput.value.toLowerCase().replace(/[^a-z0-9-]/g,'');
+  if (slugInput.value!==clean) slugInput.value=clean;
+  clearTimeout(_checkTimer);
+  const { ok, msg, cls }=validateSlug(clean);
+  if (!ok) {
+    fieldHint.textContent=msg;
+    fieldHint.className='field-hint '+(cls||'neutral');
+    urlBar.className='url-bar'+(clean?' invalid':'');
+    btnCreate.disabled=true;
+    return;
+  }
+  fieldHint.textContent='Vérification…';
+  fieldHint.className='field-hint neutral';
+  urlBar.className='url-bar';
+  btnCreate.disabled=true;
+  _checkTimer=setTimeout(()=>checkAvailability(clean),400);
 });
 
-btnCreate.addEventListener('click', () => {
-  const slug = slugInput.value.trim();
-  if (!validateSlug(slug).ok) return;
-  window.location.href = '/' + slug;
+btnCreate.addEventListener('click', async () => {
+  const slug=slugInput.value.trim();
+  if (btnCreate.disabled||!validateSlug(slug).ok) return;
+  btnCreate.disabled=true;
+  btnCreate.textContent='Création…';
+  const { error }=await sb.from('users').insert({ slug });
+  if (error) {
+    fieldHint.textContent=error.code==='23505'?'✗ Identifiant déjà pris.':'⚠ Erreur : '+error.message;
+    fieldHint.className='field-hint err';
+    urlBar.className='url-bar invalid';
+    btnCreate.disabled=false;
+    btnCreate.textContent='Créer mon espace →';
+    return;
+  }
+  showPinScreen(slug);
 });
 
 slugInput.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && !btnCreate.disabled) btnCreate.click();
+  if (e.key==='Enter'&&!btnCreate.disabled) btnCreate.click();
 });
 
-// "Accède-y ici" — toggle the existing-user form
-document.getElementById('linkAccess').addEventListener('click', () => {
-  const form = document.getElementById('existingForm');
+function showPinScreen(slug) {
+  document.getElementById('screenWelcome').style.display='none';
+  document.getElementById('screenPin').style.display='block';
+  const url=window.location.origin+'/'+slug;
+  document.getElementById('pinUrl').textContent=url;
+  document.getElementById('btnGo').onclick=()=>{ window.location.href='/'+slug; };
+}
+
+document.getElementById('btnCopy').addEventListener('click',()=>{
+  const url=document.getElementById('pinUrl').textContent;
+  const btn=document.getElementById('btnCopy');
+  const done=()=>{ btn.textContent='Copié !';btn.classList.add('copied');setTimeout(()=>{btn.textContent='Copier';btn.classList.remove('copied');},2000); };
+  if(navigator.clipboard) navigator.clipboard.writeText(url).then(done).catch(()=>{});
+  else { const t=document.createElement('textarea');t.value=url;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);done(); }
+});
+
+document.getElementById('linkAccess').addEventListener('click',()=>{
+  const form=document.getElementById('existingForm');
   form.classList.toggle('open');
-  if (form.classList.contains('open')) document.getElementById('slugAccess').focus();
+  if(form.classList.contains('open')) document.getElementById('slugAccess').focus();
 });
 
-document.getElementById('btnAccess').addEventListener('click', () => {
-  const slug = document.getElementById('slugAccess').value.trim().toLowerCase();
-  if (slug) window.location.href = '/' + slug;
+document.getElementById('btnAccess').addEventListener('click',()=>{
+  const slug=document.getElementById('slugAccess').value.trim().toLowerCase();
+  if(slug) window.location.href='/'+slug;
 });
 
-document.getElementById('slugAccess').addEventListener('keydown', e => {
-  if (e.key === 'Enter') document.getElementById('btnAccess').click();
+document.getElementById('slugAccess').addEventListener('keydown',e=>{
+  if(e.key==='Enter') document.getElementById('btnAccess').click();
 });
 </script>
 </body>
