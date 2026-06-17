@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Heures Hebdo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root {
+  --bg:#F7F6F3;--surface:#FFF;--surface2:#F9F9F7;
+  --border:rgba(0,0,0,0.07);--border2:rgba(0,0,0,0.14);
+  --text:#111110;--text2:#5C5B57;--text3:#A09E98;--text4:#CCCAC4;
+  --green:#16A34A;--red:#DC2626;--red-bg:#FEF2F2;
+  --mono:'JetBrains Mono','Fira Mono',monospace;
+  --sans:'Inter',-apple-system,sans-serif;
+  --r:10px;--r-lg:14px;--r-xl:18px;
+}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px 16px;-webkit-font-smoothing:antialiased;}
+
+.welcome{width:100%;max-width:420px;}
+
+.welcome-header{text-align:center;margin-bottom:28px;}
+.app-name{font-size:18px;font-weight:600;letter-spacing:-0.02em;margin-bottom:6px;}
+.app-tagline{font-size:13px;color:var(--text2);line-height:1.6;}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);padding:24px;}
+.card-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:14px;}
+
+.url-bar{display:flex;align-items:center;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--r);overflow:hidden;transition:border-color .15s,box-shadow .15s;}
+.url-bar:focus-within{border-color:var(--text);box-shadow:0 0 0 3px rgba(17,17,16,0.06);}
+.url-bar.valid:focus-within{border-color:var(--green);box-shadow:0 0 0 3px rgba(22,163,74,0.10);}
+.url-bar.invalid:focus-within{border-color:var(--red);box-shadow:0 0 0 3px rgba(220,38,38,0.10);}
+
+.url-prefix{font-family:var(--mono);font-size:11px;color:var(--text3);padding:10px 0 10px 12px;white-space:nowrap;user-select:none;flex-shrink:0;}
+.url-input{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--text);background:transparent;border:none;outline:none;padding:10px 12px 10px 2px;flex:1;min-width:0;}
+.url-input::placeholder{color:var(--text4);font-weight:400;}
+
+.field-hint{height:20px;margin-top:8px;font-size:11.5px;display:flex;align-items:center;gap:5px;transition:color .12s;}
+.field-hint.neutral{color:var(--text3);}
+.field-hint.ok{color:var(--green);}
+.field-hint.err{color:var(--red);}
+
+.examples{font-size:11px;color:var(--text3);margin-top:7px;}
+.examples code{font-family:var(--mono);font-size:10.5px;background:rgba(0,0,0,0.05);border-radius:4px;padding:1px 5px;color:var(--text2);}
+
+.btn-primary{width:100%;margin-top:16px;font-family:var(--sans);font-size:13px;font-weight:500;background:var(--text);color:#fff;border:none;border-radius:var(--r);padding:11px 16px;cursor:pointer;transition:background .12s;display:flex;align-items:center;justify-content:center;gap:6px;}
+.btn-primary:hover:not(:disabled){background:#333;}
+.btn-primary:disabled{background:var(--text4);cursor:not-allowed;}
+
+.divider{display:flex;align-items:center;gap:12px;margin:24px 0 0;}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border);}
+.divider-label{font-size:11px;color:var(--text3);white-space:nowrap;}
+
+.existing-section{margin-top:20px;text-align:center;}
+.existing-text{font-size:12px;color:var(--text2);line-height:1.7;}
+.existing-text a{color:var(--text);font-weight:500;text-decoration:underline;text-underline-offset:2px;cursor:pointer;}
+
+.existing-form{display:none;margin-top:14px;flex-direction:row;gap:8px;align-items:stretch;}
+.existing-form.open{display:flex;}
+.existing-form .url-bar{flex:1;}
+
+.btn-secondary{font-family:var(--sans);font-size:12px;font-weight:500;background:var(--surface);color:var(--text);border:1px solid var(--border2);border-radius:var(--r);padding:0 14px;cursor:pointer;white-space:nowrap;transition:background .12s;flex-shrink:0;}
+.btn-secondary:hover{background:var(--bg);}
+</style>
+</head>
+<body>
+<div class="welcome">
+
+  <div class="welcome-header">
+    <div class="app-name">Heures Hebdo</div>
+    <div class="app-tagline">Ton compteur d'heures hebdomadaires personnel.<br>Synchronisé sur tous tes appareils.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Choisis ton identifiant</div>
+
+    <div class="url-bar" id="urlBar">
+      <span class="url-prefix">heures-hebdo.vercel.app/</span>
+      <input class="url-input" id="slugInput" type="text" placeholder="jean-michel-74" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="field-hint neutral" id="fieldHint">Lettres minuscules, chiffres et tirets uniquement.</div>
+    <div class="examples">Ex : <code>jean-michel-74</code>, <code>marie-chantal</code></div>
+
+    <button class="btn-primary" id="btnCreate" disabled>Créer mon espace →</button>
+  </div>
+
+  <div class="divider"><span class="divider-label">ou</span></div>
+
+  <div class="existing-section">
+    <p class="existing-text">
+      Tu as déjà un espace ? Saisis ton identifiant directement dans l'URL<br>
+      ou <a id="linkAccess">accède-y ici</a>.
+    </p>
+    <div class="existing-form" id="existingForm">
+      <div class="url-bar">
+        <span class="url-prefix">heures-hebdo.vercel.app/</span>
+        <input class="url-input" id="slugAccess" type="text" placeholder="mon-identifiant" autocomplete="off" spellcheck="false">
+      </div>
+      <button class="btn-secondary" id="btnAccess">Accéder →</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const slugInput  = document.getElementById('slugInput');
+const urlBar     = document.getElementById('urlBar');
+const fieldHint  = document.getElementById('fieldHint');
+const btnCreate  = document.getElementById('btnCreate');
+
+function validateSlug(v) {
+  if (!v)                             return { ok: false, msg: 'Lettres minuscules, chiffres et tirets uniquement.', cls: 'neutral' };
+  if (v.length < 3)                   return { ok: false, msg: 'Au moins 3 caractères.', cls: 'err' };
+  if (!/^[a-z0-9-]+$/.test(v))       return { ok: false, msg: 'Uniquement des lettres minuscules, chiffres et tirets.', cls: 'err' };
+  if (v.startsWith('-')||v.endsWith('-')) return { ok: false, msg: 'Ne peut pas commencer ou finir par un tiret.', cls: 'err' };
+  if (v.includes('--'))               return { ok: false, msg: 'Pas de tirets consécutifs.', cls: 'err' };
+  // "Disponible" check will be replaced by a real Supabase availability check in step 3
+  return { ok: true, msg: '✓ Identifiant disponible', cls: 'ok' };
+}
+
+slugInput.addEventListener('input', () => {
+  // Auto-lowercase and strip invalid chars
+  const clean = slugInput.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
+  if (slugInput.value !== clean) slugInput.value = clean;
+
+  const { ok, msg, cls } = validateSlug(clean);
+  fieldHint.textContent = msg;
+  fieldHint.className   = 'field-hint ' + cls;
+  urlBar.className      = 'url-bar' + (ok ? ' valid' : clean ? ' invalid' : '');
+  btnCreate.disabled    = !ok;
+});
+
+btnCreate.addEventListener('click', () => {
+  const slug = slugInput.value.trim();
+  if (!validateSlug(slug).ok) return;
+  window.location.href = '/' + slug;
+});
+
+slugInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !btnCreate.disabled) btnCreate.click();
+});
+
+// "Accède-y ici" — toggle the existing-user form
+document.getElementById('linkAccess').addEventListener('click', () => {
+  const form = document.getElementById('existingForm');
+  form.classList.toggle('open');
+  if (form.classList.contains('open')) document.getElementById('slugAccess').focus();
+});
+
+document.getElementById('btnAccess').addEventListener('click', () => {
+  const slug = document.getElementById('slugAccess').value.trim().toLowerCase();
+  if (slug) window.location.href = '/' + slug;
+});
+
+document.getElementById('slugAccess').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('btnAccess').click();
+});
+</script>
+</body>
+</html>
