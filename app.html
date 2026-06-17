@@ -405,7 +405,6 @@ let data={};
 let currentTpl=null;
 let copiedDay=null;
 let tplCopiedDay=null;
-let _tabTarget=null;
 
 function calcDay(day,ignoreExtras){
   if(day.ferie)return null;
@@ -484,10 +483,9 @@ function makeInput(val,times,onChange,opts={}){
   if(opts.autoVal){inp.value=opts.autoVal;inp.classList.add('auto-val');inp.title='Calculée automatiquement — modifiable';}
   else inp.value=val||'';
 
-  inp.addEventListener('mousedown',()=>{setTimeout(()=>inp.select(),0);});
-  inp.addEventListener('click',()=>{setTimeout(()=>inp.select(),0);});
+  inp.addEventListener('click',()=>inp.select());
   inp.addEventListener('focus',()=>{
-    setTimeout(()=>inp.select(),0);
+    requestAnimationFrame(()=>inp.select());
     if(_tabbing){_tabbing=false;return;}
     if(inp.classList.contains('auto-val'))inp.value='';
     inp.classList.remove('auto-val');
@@ -509,11 +507,7 @@ function makeInput(val,times,onChange,opts={}){
       const idx=inputs.indexOf(inp);
       if(idx>=0){
         const next=e.shiftKey?inputs[idx-1]:inputs[idx+1];
-        if(next){
-          closePicker();_tabbing=true;
-          if(next.dataset.tabday&&next.dataset.tabfield)_tabTarget={day:next.dataset.tabday,field:next.dataset.tabfield};
-          next.focus();
-        }
+        if(next){closePicker();_tabbing=true;next.focus();}
       }
       return;
     }
@@ -628,9 +622,10 @@ function buildTable(tbodyEl,theadEl,dayData,opts={}){
           const inp=document.createElement('input');
           inp.type='text';inp.className='ti auto-val';inp.placeholder='--:--';
           inp.value=pAuto||'';inp.title='Calculée auto — modifier pour ajuster l\'arrivée ap-m';
-          inp.addEventListener('mousedown',()=>{setTimeout(()=>inp.select(),0);});
+          inp.dataset.tabday=dk;inp.dataset.tabfield='pause';
+          inp.addEventListener('click',()=>inp.select());
           inp.addEventListener('focus',()=>{
-            setTimeout(()=>inp.select(),0);
+            requestAnimationFrame(()=>inp.select());
             if(_tabbing){_tabbing=false;return;}
             inp.classList.remove('auto-val');
             openPicker(inp,pauseTimes(),'01:00',v=>{inp.value=v;inp.classList.remove('auto-val');applyPause(dk,v,dayData,isT);});
@@ -653,7 +648,7 @@ function buildTable(tbodyEl,theadEl,dayData,opts={}){
               updateTplStats(dayData);
               setTimeout(applyTableWidths,0);
             }
-            else{saveWeek(WK,data[WK]);render();}
+            else{saveWeek(WK,data[WK]);rerenderTotals(data[WK],'');updateStats();updatePauseDisplay(dk);}
           },{tabday:isT?null:dk,tabfield:isT?null:row.key});
           td.appendChild(w);
         }
@@ -759,7 +754,19 @@ function applyPause(dk,pauseVal,dayData,isT){
   const day=dayData[dk],d1=parse(day.d1),p=parse(pauseVal);
   if(d1!==null&&p!==null)day.a2=fmt(d1+p);
   if(isT)updateTplStats(dayData);
-  else{saveWeek(WK,data[WK]);render();}
+  else{saveWeek(WK,data[WK]);updateFieldDisplay(dk,'a2',day.a2);rerenderTotals(data[WK],'');updateStats();}
+}
+
+function updatePauseDisplay(dk){
+  const inp=document.querySelector(`[data-tabday="${dk}"][data-tabfield="pause"]`);
+  if(!inp)return;
+  const pAuto=autoPause(data[WK][dk]);
+  inp.value=pAuto||'';
+  if(pAuto)inp.classList.add('auto-val');else inp.classList.remove('auto-val');
+}
+function updateFieldDisplay(dk,field,val){
+  const inp=document.querySelector(`[data-tabday="${dk}"][data-tabfield="${field}"]`);
+  if(inp){inp.value=val||'';inp.classList.remove('auto-val');}
 }
 
 let _ctx=null;
@@ -845,13 +852,6 @@ function render(){
   rerenderTotals(data[WK],'');
   updateStats();
   setTimeout(applyTableWidths,0);
-  if(_tabTarget){
-    const t=_tabTarget;_tabTarget=null;
-    setTimeout(()=>{
-      const el=document.querySelector(`[data-tabday="${t.day}"][data-tabfield="${t.field}"]`);
-      if(el){_tabbing=true;el.focus();}
-    },0);
-  }
 }
 
 // --- Template button handlers ---
