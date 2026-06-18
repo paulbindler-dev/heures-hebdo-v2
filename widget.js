@@ -153,7 +153,7 @@ async function buildWidget() {
   const w = new ListWidget();
   w.backgroundColor  = new Color(BG_COLOR);
   w.refreshAfterDate = nextRefreshDate();
-  if (SLUG) w.url = `${APP_URL}/${SLUG}`;
+  w.url = `scriptable:///run?scriptName=${encodeURIComponent(Script.name())}`;
 
   if (!SLUG) {
     w.addSpacer();
