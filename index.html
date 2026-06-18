@@ -24,36 +24,36 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .welcome{width:100%;max-width:420px;}
 
 .welcome-header{text-align:center;margin-bottom:28px;}
-.app-name{font-size:18px;font-weight:600;letter-spacing:-0.02em;margin-bottom:6px;}
-.app-tagline{font-size:13px;color:var(--text2);line-height:1.6;}
+.app-name{font-size:22px;font-weight:600;letter-spacing:-0.02em;margin-bottom:6px;}
+.app-tagline{font-size:12px;color:var(--text2);line-height:1.6;}
 
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);padding:24px;}
-.card-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:14px;}
+.card-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:14px;}
 
 .url-bar{display:flex;align-items:center;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--r);overflow:hidden;transition:border-color .15s,box-shadow .15s;}
 .url-bar:focus-within{border-color:var(--text);box-shadow:0 0 0 3px rgba(17,17,16,0.06);}
 .url-bar.valid:focus-within{border-color:var(--green);box-shadow:0 0 0 3px rgba(22,163,74,0.10);}
 .url-bar.invalid:focus-within{border-color:var(--red);box-shadow:0 0 0 3px rgba(220,38,38,0.10);}
 
-.url-prefix{font-family:var(--mono);font-size:11px;color:var(--text3);padding:10px 0 10px 12px;white-space:nowrap;user-select:none;flex-shrink:0;}
+.url-prefix{font-family:var(--mono);font-size:12px;color:var(--text3);padding:10px 0 10px 12px;white-space:nowrap;user-select:none;flex-shrink:0;}
 .url-input{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--text);background:transparent;border:none;outline:none;padding:10px 12px 10px 2px;flex:1;min-width:0;}
 .url-input::placeholder{color:var(--text4);font-weight:400;}
 
-.field-hint{height:20px;margin-top:8px;font-size:11.5px;display:flex;align-items:center;gap:5px;transition:color .12s;}
+.field-hint{height:20px;margin-top:8px;font-size:12px;display:flex;align-items:center;gap:5px;transition:color .12s;}
 .field-hint.neutral{color:var(--text3);}
 .field-hint.ok{color:var(--green);}
 .field-hint.err{color:var(--red);}
 
-.examples{font-size:11px;color:var(--text3);margin-top:7px;}
-.examples code{font-family:var(--mono);font-size:10.5px;background:rgba(0,0,0,0.05);border-radius:4px;padding:1px 5px;color:var(--text2);}
+.examples{font-size:12px;color:var(--text3);margin-top:7px;}
+.examples code{font-family:var(--mono);font-size:10px;background:rgba(0,0,0,0.05);border-radius:4px;padding:1px 5px;color:var(--text2);}
 
-.btn-primary{width:100%;margin-top:16px;font-family:var(--sans);font-size:13px;font-weight:500;background:var(--text);color:#fff;border:none;border-radius:var(--r);padding:11px 16px;cursor:pointer;transition:background .12s;display:flex;align-items:center;justify-content:center;gap:6px;}
+.btn-primary{width:100%;margin-top:16px;font-family:var(--sans);font-size:14px;font-weight:500;background:var(--text);color:#fff;border:none;border-radius:var(--r);padding:11px 16px;cursor:pointer;transition:background .12s;display:flex;align-items:center;justify-content:center;gap:6px;}
 .btn-primary:hover:not(:disabled){background:#333;}
 .btn-primary:disabled{background:var(--text4);cursor:not-allowed;}
 
 .divider{display:flex;align-items:center;gap:12px;margin:24px 0 0;}
 .divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border);}
-.divider-label{font-size:11px;color:var(--text3);white-space:nowrap;}
+.divider-label{font-size:12px;color:var(--text3);white-space:nowrap;}
 
 .existing-section{margin-top:20px;text-align:center;}
 .existing-text{font-size:12px;color:var(--text2);line-height:1.7;}
@@ -63,22 +63,37 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .existing-form.open{display:flex;}
 .existing-form .url-bar{flex:1;}
 
-.btn-secondary{font-family:var(--sans);font-size:12px;font-weight:500;background:var(--surface);color:var(--text);border:1px solid var(--border2);border-radius:var(--r);padding:0 14px;cursor:pointer;white-space:nowrap;transition:background .12s;flex-shrink:0;}
+.btn-secondary{font-family:var(--sans);font-size:14px;font-weight:500;background:var(--surface);color:var(--text);border:1px solid var(--border2);border-radius:var(--r);padding:0 14px;cursor:pointer;white-space:nowrap;transition:background .12s;flex-shrink:0;}
 .btn-secondary:hover{background:var(--bg);}
 /* iOS anti-zoom — 16px min sur mobile uniquement */
 @media (max-width:768px){.url-input,.url-bar input{font-size:16px;}}
 
+.btn-primary:focus-visible,.btn-secondary:focus-visible,.btn-copy:focus-visible{outline:2px solid var(--text);outline-offset:2px;}
+
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#1A1918;--surface:#242220;--surface2:#2A2826;
+    --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.14);
+    --text:#F0EFEC;--text2:#9C9A96;--text3:#6B6965;--text4:#4A4845;
+    --green:#4ADE80;--red:#F87171;--red-bg:rgba(248,113,113,0.12);
+  }
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition-duration:.01ms!important;animation-duration:.01ms!important;}
+}
+
 /* Pin screen */
 .pin-sub{font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.5;}
 .url-copy-bar{display:flex;align-items:center;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--r);overflow:hidden;margin-bottom:16px;}
-.pin-url-text{font-family:var(--mono);font-size:11px;color:var(--text2);padding:10px 12px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;user-select:all;}
-.btn-copy{font-family:var(--sans);font-size:11px;font-weight:500;background:var(--surface);color:var(--text2);border:none;border-left:1px solid var(--border2);padding:10px 14px;cursor:pointer;white-space:nowrap;transition:background .12s,color .12s;flex-shrink:0;}
+.pin-url-text{font-family:var(--mono);font-size:12px;color:var(--text2);padding:10px 12px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;user-select:all;}
+.btn-copy{font-family:var(--sans);font-size:12px;font-weight:500;background:var(--surface);color:var(--text2);border:none;border-left:1px solid var(--border2);padding:10px 14px;cursor:pointer;white-space:nowrap;transition:background .12s,color .12s;flex-shrink:0;}
 .btn-copy:hover{background:var(--bg);color:var(--text);}
 .btn-copy.copied{color:var(--green);}
 .pin-instructions{display:flex;flex-direction:column;gap:8px;margin-bottom:16px;}
 .pin-step{padding:11px 14px;background:var(--surface2);border-radius:var(--r);border:1px solid var(--border);}
 .pin-step-label{font-size:10px;font-weight:700;letter-spacing:0.09em;text-transform:uppercase;color:var(--text3);margin-bottom:4px;}
 .pin-step-text{font-size:12px;color:var(--text2);line-height:1.6;}
+
 .pin-kbd{display:inline-block;font-family:var(--mono);font-size:10px;background:var(--bg);border:1px solid var(--border2);border-radius:4px;padding:1px 5px;color:var(--text3);}
 </style>
 </head>
@@ -108,7 +123,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
   <div class="existing-section">
     <p class="existing-text">
       Tu as déjà un espace ? Saisis ton identifiant directement dans l'URL<br>
-      ou <a id="linkAccess">accède-y ici</a>.
+      ou <a id="linkAccess" tabindex="0" role="button">accède-y ici</a>.
     </p>
     <div class="existing-form" id="existingForm">
       <div class="url-bar">
@@ -247,11 +262,13 @@ document.getElementById('btnCopy').addEventListener('click',()=>{
   else { const t=document.createElement('textarea');t.value=url;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);done(); }
 });
 
-document.getElementById('linkAccess').addEventListener('click',()=>{
+const _linkAccess=document.getElementById('linkAccess');
+_linkAccess.addEventListener('click',()=>{
   const form=document.getElementById('existingForm');
   form.classList.toggle('open');
   if(form.classList.contains('open')) document.getElementById('slugAccess').focus();
 });
+_linkAccess.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();_linkAccess.click();}});
 
 document.getElementById('btnAccess').addEventListener('click',()=>{
   const slug=document.getElementById('slugAccess').value.trim().toLowerCase();
