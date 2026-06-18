@@ -99,6 +99,12 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .pin-step-text{font-size:12px;color:var(--text2);line-height:1.6;}
 
 .pin-kbd{display:inline-block;font-family:var(--mono);font-size:10px;background:var(--bg);border:1px solid var(--border2);border-radius:4px;padding:1px 5px;color:var(--text3);}
+
+/* Guide screen */
+.guide-link{text-align:center;margin-top:20px;}
+.guide-link a{font-size:11px;color:var(--text3);text-decoration:none;cursor:pointer;border-bottom:1px solid var(--border2);padding-bottom:1px;transition:color .12s;}
+.guide-link a:hover{color:var(--text2);}
+.guide-step code{font-family:var(--mono);font-size:10px;background:rgba(0,0,0,0.05);border-radius:4px;padding:1px 5px;color:var(--text2);}
 </style>
 </head>
 <body>
@@ -138,6 +144,10 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
     </div>
   </div>
 
+  <div class="guide-link">
+    <a id="linkGuide" tabindex="0" role="button">Comment ça marche ?</a>
+  </div>
+
 </div>
 
 <!-- Écran 2 : Épingle ton URL -->
@@ -168,6 +178,37 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
       </div>
     </div>
     <button class="btn-primary" id="btnGo">Accéder à mon espace →</button>
+  </div>
+</div>
+
+<!-- Écran 3 : Guide collègues -->
+<div class="welcome" id="screenGuide" style="display:none">
+  <div class="welcome-header">
+    <div class="app-name">Heures Hebdo</div>
+    <div class="app-tagline">Comment ça marche ?</div>
+  </div>
+  <div class="card">
+    <div class="pin-instructions">
+      <div class="pin-step">
+        <div class="pin-step-label">1 — Crée ton espace</div>
+        <div class="pin-step-text guide-step">Sur cette page, choisis un identifiant unique, par exemple <code>prenom-74</code>. Tu obtiens une URL personnelle — c'est ton accès permanent.</div>
+      </div>
+      <div class="pin-step">
+        <div class="pin-step-label">2 — Épingle ton URL</div>
+        <div class="pin-step-text">Ajoute-la en favori <span class="pin-kbd">Cmd+D</span> sur Mac ou <span class="pin-kbd">Ctrl+D</span> sur PC. Sur iPhone : icône Partager <span class="pin-kbd">⬆</span> → "Sur l'écran d'accueil".</div>
+      </div>
+      <div class="pin-step">
+        <div class="pin-step-label">3 — Saisis tes heures</div>
+        <div class="pin-step-text">Clique sur un champ du tableau, tape l'heure, <span class="pin-kbd">Tab</span> pour passer au suivant. La sauvegarde est automatique et synchronisée sur tous tes appareils.</div>
+      </div>
+      <div class="pin-step">
+        <div class="pin-step-label">4 — Widget iPhone (optionnel)</div>
+        <div class="pin-step-text">Installe <strong>Scriptable</strong> (App Store, gratuit). Copie le script sur <a href="/widget.js" target="_blank">heures-hebdo.vercel.app/widget.js</a>, colle-le dans Scriptable. Ajoute un widget Small sur l'écran d'accueil, entre ton identifiant dans les paramètres.</div>
+      </div>
+    </div>
+  </div>
+  <div class="guide-link" style="margin-top:20px;">
+    <a id="linkBack" tabindex="0" role="button">← Retour</a>
   </div>
 </div>
 
@@ -282,6 +323,18 @@ document.getElementById('btnAccess').addEventListener('click',()=>{
 document.getElementById('slugAccess').addEventListener('keydown',e=>{
   if(e.key==='Enter') document.getElementById('btnAccess').click();
 });
+
+const _linkGuide=document.getElementById('linkGuide');
+const _linkBack=document.getElementById('linkBack');
+function showScreen(id){
+  ['screenWelcome','screenPin','screenGuide'].forEach(s=>{
+    document.getElementById(s).style.display=s===id?'block':'none';
+  });
+}
+_linkGuide.addEventListener('click',()=>showScreen('screenGuide'));
+_linkGuide.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();_linkGuide.click();}});
+_linkBack.addEventListener('click',()=>showScreen('screenWelcome'));
+_linkBack.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();_linkBack.click();}});
 </script>
 </body>
 </html>

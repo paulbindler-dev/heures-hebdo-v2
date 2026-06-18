@@ -4,11 +4,12 @@
 // INSTALLATION :
 //   1. Copier ce script dans Scriptable
 //   2. Ajouter un widget Scriptable sur l'écran d'accueil (taille Small)
-//   3. Long press → Modifier le widget → Paramètre → entrer ton slug
-//      ex : "paul-notaire-67"
+//   3. Long press → Modifier le widget → Paramètre → entrer ton identifiant
+//      ex : "paul-67"
 //   4. Taper sur le widget ouvre l'app dans Safari
 // ─────────────────────────────────────────────────────────────────
 // Affiche l'heure d'arrivée du lendemain matin.
+// Couleur : vert si semaine ok, bleu si +30min bonus, rouge si déficit.
 // Se rafraîchit une fois par jour ouvré après 19h15.
 // Vendredi soir → affiche l'heure du lundi (semaine type).
 // ─────────────────────────────────────────────────────────────────
@@ -21,10 +22,65 @@ const ANON_KEY    = 'sb_publishable_pWEsnpJBGmTpF-3HSqpSxg_fufOVNrF';
 const APP_URL     = 'https://heures-hebdo.vercel.app';
 const SLUG        = args.widgetParameter || null;
 
-// ── Helpers ──────────────────────────────────────────────────────
+// ── Calcul delta semaine ─────────────────────────────────────────
+// Même logique que l'app (parse, calcDay, objectif)
 
-// Reproduit exactement le weekKey() de l'app :
-// retourne la date du lundi de la semaine courante (YYYY-MM-DD)
+const DAY_NAMES   = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi'];
+const DAY_TARGET  = [480, 480, 480, 480, 180]; // minutes (lun-jeu=8h, ven=3h)
+
+function parseTime(v) {
+  if (!v || !v.trim()) return null;
+  v = v.trim().replace(',', ':');
+  let h, m;
+  if (v.includes(':')) [h, m] = v.split(':').map(Number);
+  else if (v.length <= 2) { h = +v; m = 0; }
+  else if (v.length === 3) { h = +v[0]; m = +v.slice(1); }
+  else { h = +v.slice(0, 2); m = +v.slice(2); }
+  if (isNaN(h) || isNaN(m) || h > 23 || m > 59 || h < 0 || m < 0) return null;
+  return h * 60 + m;
+}
+
+function calcDay(day) {
+  if (!day || day.ferie) return null;
+  const a1 = parseTime(day.a1), d1 = parseTime(day.d1);
+  const a2 = parseTime(day.a2), d2 = parseTime(day.d2);
+  if (a1 === null) return null;
+  let total = null;
+  if (d2 !== null) {
+    total = (d1 !== null && a2 !== null) ? (d1 - a1) + (d2 - a2) : d2 - a1;
+  } else if (d1 !== null) {
+    total = d1 - a1;
+  }
+  if (total === null) return null;
+  (day.extras || []).forEach(ex => {
+    const ea = parseTime(ex.a), ed = parseTime(ex.d);
+    if (ea !== null && ed !== null && ed > ea) total += ed - ea;
+  });
+  return total;
+}
+
+// Retourne la couleur du texte selon le delta de la semaine
+// Couleurs dark-mode (fond sombre) : vert clair, rouge clair, bleu clair
+function deltaColor(weekData) {
+  let objective = 35 * 60;
+  let total = 0;
+  let hasSomeData = false;
+  DAY_NAMES.forEach((day, i) => {
+    const d = weekData[day];
+    if (!d) return;
+    if (d.ferie) { objective -= DAY_TARGET[i]; return; }
+    const t = calcDay(d);
+    if (t !== null) { total += t; hasSomeData = true; }
+  });
+  if (!hasSomeData) return new Color('#FFFFFF');
+  const delta = total - objective;
+  if (delta >= 30)  return new Color('#60A5FA'); // bleu  : +30min bonus
+  if (delta >= 0)   return new Color('#4ADE80'); // vert  : objectif atteint
+  return new Color('#F87171');                    // rouge : déficit
+}
+
+// ── Helpers nav ──────────────────────────────────────────────────
+
 function currentWeekKey() {
   const d   = new Date();
   const day = d.getDay();
@@ -37,18 +93,12 @@ function currentWeekKey() {
   return `${yy}-${mm}-${dd}`;
 }
 
-// Retourne le nom du jour de demain (en français, comme dans la BDD)
-// et un flag useTemplate = true si demain est lundi (vendredi soir)
 function tomorrowInfo() {
-  const DAY_NAMES = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi'];
-  const today = new Date().getDay(); // 0=dim, 1=lun … 5=ven, 6=sam
+  const today = new Date().getDay();
   if (today === 5) return { name: 'lundi', useTemplate: true };
-  // Lun(1)→mardi=index1, Mar(2)→mercredi=index2 … Jeu(4)→vendredi=index4
   return { name: DAY_NAMES[today], useTemplate: false };
 }
 
-// Prochaine date de rafraîchissement : lendemain ouvré à 19h15
-// Vendredi → lundi suivant à 19h15
 function nextRefreshDate() {
   const today     = new Date().getDay();
   const daysAhead = today === 5 ? 3 : 1;
@@ -75,7 +125,6 @@ async function buildWidget() {
   w.refreshAfterDate = nextRefreshDate();
   if (SLUG) w.url = `${APP_URL}/${SLUG}`;
 
-  // Slug non configuré
   if (!SLUG) {
     w.addSpacer();
     const t = w.addText('Configure\nle widget →\nlong press');
@@ -92,20 +141,21 @@ async function buildWidget() {
       fetchJSON(`users?slug=eq.${SLUG}&select=template`),
     ]);
 
-    const weekData = weeksRes[0]?.data   || {};
+    const weekData = weeksRes[0]?.data    || {};
     const template = usersRes[0]?.template || {};
-    const { name: dayName, useTemplate } = tomorrowInfo();
+    const { name: dayName, useTemplate }  = tomorrowInfo();
 
-    // Priorité : données semaine → semaine type → rien
     let time = null;
     if (!useTemplate) time = weekData[dayName]?.a1 || null;
     if (!time)        time = template[dayName]?.a1  || null;
 
+    const color = deltaColor(weekData);
+
     w.addSpacer();
     const txt = w.addText(time || '—');
-    txt.font                = Font.boldSystemFont(36);
-    txt.textColor           = new Color('#FFFFFF');
-    txt.minimumScaleFactor  = 0.6;
+    txt.font               = Font.boldSystemFont(36);
+    txt.textColor          = time ? color : new Color('#A09E98');
+    txt.minimumScaleFactor = 0.6;
     txt.centerAlignText();
     w.addSpacer();
 
