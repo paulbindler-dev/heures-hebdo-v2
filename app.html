@@ -33,8 +33,8 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:18px;gap:10px;flex-wrap:wrap;}
 .brand{display:flex;align-items:center;gap:9px;}
 
-.app-name{font-size:14px;font-weight:600;letter-spacing:-0.02em;margin-bottom:3px;}
-.week-sub{font-size:11px;color:var(--text4);}
+.app-name{font-size:11px;font-weight:400;color:var(--text3);margin-bottom:5px;}
+.week-sub{font-size:28px;font-weight:700;letter-spacing:-0.04em;color:var(--text);line-height:1;}
 .header-actions{display:flex;gap:7px;flex-wrap:wrap;}
 .btn{font-family:var(--sans);font-size:12px;font-weight:500;border-radius:var(--r);border:1px solid var(--border2);background:var(--surface);color:var(--text2);padding:7px 13px;cursor:pointer;transition:background .12s,color .12s;white-space:nowrap;line-height:1;}
 .btn:hover{background:var(--surface-hover);color:var(--text);}
@@ -45,7 +45,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:14px;}
 .stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:13px 15px;}
 .stat-label{font-size:10px;font-weight:600;letter-spacing:0.09em;text-transform:uppercase;color:var(--text3);margin-bottom:5px;}
-.stat-val{font-family:var(--mono);font-size:22px;font-weight:600;letter-spacing:-0.03em;line-height:1;color:var(--text3);}
+.stat-val{font-size:32px;font-weight:700;letter-spacing:-0.05em;line-height:1;color:var(--text3);}
 .stat-val.pos{color:var(--green);}
 .stat-val.neg{color:var(--red);}
 .stat-val.bonus{color:var(--blue);}
@@ -64,13 +64,13 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
   padding:10px 4px 9px;text-align:center;
   font-size:11px;font-weight:600;color:var(--text2);
   border-bottom:1px solid var(--border);background:var(--surface2);
-  overflow:hidden;
+  overflow:hidden;position:relative;
 }
 .main-table thead th:first-child{text-align:left;padding-left:12px;color:var(--text4);font-weight:400;font-size:10px;}
 
-.day-th-inner{display:flex;flex-direction:column;align-items:center;gap:3px;}
+.day-th-inner{display:flex;flex-direction:column;align-items:center;}
 .day-name{font-size:11px;font-weight:600;color:var(--text2);white-space:nowrap;}
-.day-actions{display:flex;gap:2px;align-items:center;justify-content:center;}
+.day-actions{position:absolute;right:4px;top:50%;transform:translateY(-50%);display:flex;gap:2px;align-items:center;}
 
 .btn-day{
   display:inline-flex;align-items:center;justify-content:center;
@@ -431,8 +431,8 @@ function weekKey(){
 function weekLabel(k){
   const[y,mo,d]=k.split('-').map(Number),m=new Date(y,mo-1,d),f=new Date(m);
   f.setDate(m.getDate()+4);
-  const g=dt=>dt.toLocaleDateString('fr-FR',{day:'numeric',month:'long'});
-  return g(m)+' – '+g(f);
+  const endStr=f.toLocaleDateString('fr-FR',{day:'numeric',month:'long'});
+  return`Semaine du ${m.getDate()} au ${endStr}`;
 }
 
 // --- App state ---
@@ -627,14 +627,14 @@ function buildTable(tbodyEl,theadEl,dayData,opts={}){
 
   tbodyEl.innerHTML='';
   const sections=[
-    {label:'Matin',rows:[{key:'a1',label:'Arrivée'},{key:'d1',label:'Départ'}]},
-    {label:'Pause',rows:[{key:'pause',label:'Durée',isPause:true}]},
-    {label:'Après-midi',rows:[{key:'a2',label:'Arrivée'},{key:'d2',label:'Départ'}]},
+    {label:null,rows:[{key:'a1',label:'Arrivée'},{key:'d1',label:'Midi'}]},
+    {label:null,rows:[{key:'pause',label:'Pause',isPause:true}]},
+    {label:null,rows:[{key:'a2',label:'Reprise'},{key:'d2',label:'Départ'}]},
   ];
 
   sections.forEach((sec,si)=>{
     const sRow=document.createElement('tr');sRow.className='sec-row'+(si===0?' first':'');
-    const sTd=document.createElement('td');sTd.colSpan=6;sTd.textContent=sec.label;
+    const sTd=document.createElement('td');sTd.colSpan=6;if(sec.label)sTd.textContent=sec.label;
     sRow.appendChild(sTd);tbodyEl.appendChild(sRow);
 
     sec.rows.forEach(row=>{
