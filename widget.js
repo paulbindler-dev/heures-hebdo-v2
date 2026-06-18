@@ -8,10 +8,11 @@
 //      ex : "paul-67"
 //   4. Taper sur le widget ouvre l'app dans Safari
 // ─────────────────────────────────────────────────────────────────
-// Affiche l'heure d'arrivée du lendemain matin.
+// Logique d'affichage selon l'heure :
+//   19h–23h59 → heure d'arrivée demain matin (a1)
+//   00h–11h59 → heure d'arrivée ce matin (a1)
+//   12h–18h59 → heure de retour déjeuner aujourd'hui (a2)
 // Couleur : vert si semaine ok, bleu si +30min bonus, rouge si déficit.
-// Se rafraîchit une fois par jour ouvré après 19h15.
-// Vendredi soir → affiche l'heure du lundi (semaine type).
 // ─────────────────────────────────────────────────────────────────
 
 // ── Config ───────────────────────────────────────────────────────
@@ -72,7 +73,7 @@ function deltaColor(weekData) {
     const t = calcDay(d);
     if (t !== null) { total += t; hasSomeData = true; }
   });
-  if (!hasSomeData) return new Color('#FFFFFF');
+  if (!hasSomeData) return new Color('#A09E98'); // gris : semaine sans données
   const delta = total - objective;
   if (delta >= 30)  return new Color('#60A5FA'); // bleu  : +30min bonus
   if (delta >= 0)   return new Color('#4ADE80'); // vert  : objectif atteint
@@ -93,26 +94,55 @@ function currentWeekKey() {
   return `${yy}-${mm}-${dd}`;
 }
 
-function tomorrowInfo() {
-  const today = new Date().getDay();
-  if (today === 5) return { name: 'lundi', useTemplate: true };
-  return { name: DAY_NAMES[today], useTemplate: false };
+function displayInfo() {
+  const now  = new Date();
+  const hour = now.getHours();
+  const dow  = now.getDay(); // 0=dim, 1=lun … 6=sam
+
+  if (hour >= 19) {
+    // Demain matin — vendredi/sam/dim → lundi depuis la semaine type
+    if (dow >= 5) return { name: 'lundi', field: 'a1', useTemplate: true };
+    return { name: DAY_NAMES[dow], field: 'a1', useTemplate: false }; // DAY_NAMES[dow] = demain (lun→mar, mar→mer…)
+  }
+
+  // Ce matin ou retour déjeuner — weekend → lundi depuis la semaine type
+  if (dow === 0 || dow === 6) {
+    return { name: 'lundi', field: 'a1', useTemplate: true };
+  }
+  const field = hour >= 12 ? 'a2' : 'a1';
+  return { name: DAY_NAMES[dow - 1], field, useTemplate: false }; // DAY_NAMES[dow-1] = aujourd'hui
 }
 
 function nextRefreshDate() {
-  const today     = new Date().getDay();
-  const daysAhead = today === 5 ? 3 : 1;
-  const next      = new Date();
-  next.setDate(next.getDate() + daysAhead);
-  next.setHours(19, 15, 0, 0);
+  const now  = new Date();
+  const hour = now.getHours();
+  const dow  = now.getDay();
+  const next = new Date(now);
+
+  // Weekend : prochain refresh lundi à 00h15
+  if (dow === 0 || dow === 6) {
+    next.setDate(next.getDate() + (dow === 6 ? 2 : 1));
+    next.setHours(0, 15, 0, 0);
+    return next;
+  }
+
+  if (hour >= 19) {
+    next.setDate(next.getDate() + 1); // minuit+15 le lendemain
+    next.setHours(0, 15, 0, 0);
+  } else if (hour >= 12) {
+    next.setHours(19, 15, 0, 0);     // 19h15 aujourd'hui
+  } else {
+    next.setHours(12, 0, 0, 0);      // midi aujourd'hui
+  }
   return next;
 }
 
 async function fetchJSON(path) {
   const req = new Request(`${SUPABASE_URL}/rest/v1/${path}`);
   req.headers = {
-    'apikey'        : ANON_KEY,
-    'Authorization' : `Bearer ${ANON_KEY}`,
+    'apikey'         : ANON_KEY,
+    'Authorization'  : `Bearer ${ANON_KEY}`,
+    'Cache-Control'  : 'no-cache',
   };
   return req.loadJSON();
 }
@@ -143,11 +173,11 @@ async function buildWidget() {
 
     const weekData = weeksRes[0]?.data    || {};
     const template = usersRes[0]?.template || {};
-    const { name: dayName, useTemplate }  = tomorrowInfo();
+    const { name: dayName, field, useTemplate } = displayInfo();
 
     let time = null;
-    if (!useTemplate) time = weekData[dayName]?.a1 || null;
-    if (!time)        time = template[dayName]?.a1  || null;
+    if (!useTemplate) time = weekData[dayName]?.[field] || null;
+    if (!time)        time = template[dayName]?.[field]  || null;
 
     const color = deltaColor(weekData);
 
