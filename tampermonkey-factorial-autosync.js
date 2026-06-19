@@ -177,8 +177,8 @@
       const body = typeof args[1]?.body === 'string' ? args[1].body : '';
 
       const isClockMutation =
-        url.includes('api.factorialhr.com/graphql') &&
-        (body.includes('clockIn') || body.includes('clockOut'));
+        url.includes('factorialhr.com/graphql') &&
+        (url.includes('ClockIn') || url.includes('ClockOut'));
 
       if (isClockMutation && response.ok) {
         // Cloner avant de lire — un ReadableStream ne peut être consommé qu'une seule fois
