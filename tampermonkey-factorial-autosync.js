@@ -27,4 +27,34 @@
     return slug.trim();
   }
 
+  function showToast(message, isError = false) {
+    const existing = document.getElementById('hh-toast');
+    if (existing) existing.remove();
+
+    const toast = document.createElement('div');
+    toast.id = 'hh-toast';
+    toast.textContent = message;
+    Object.assign(toast.style, {
+      position:        'fixed',
+      bottom:          '20px',
+      right:           '20px',
+      padding:         '10px 16px',
+      borderRadius:    '8px',
+      backgroundColor: isError ? '#fee2e2' : '#dcfce7',
+      color:           isError ? '#991b1b' : '#166534',
+      fontSize:        '13px',
+      fontFamily:      'system-ui, sans-serif',
+      boxShadow:       '0 2px 8px rgba(0,0,0,0.15)',
+      zIndex:          '999999',
+      opacity:         '1',
+      transition:      'opacity 0.3s',
+    });
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      setTimeout(() => toast.remove(), 300);
+    }, isError ? 5000 : 2000);
+  }
+
 })();
