@@ -60,9 +60,8 @@ function calcDay(day) {
   return total;
 }
 
-// Retourne la couleur du texte selon le delta de la semaine
-// Couleurs dark-mode (fond sombre) : vert clair, rouge clair, bleu clair
-function deltaColor(weekData) {
+// Calcule delta + couleurs pour la semaine
+function weekStats(weekData) {
   let objective = 35 * 60;
   let total = 0;
   let hasSomeData = false;
@@ -73,11 +72,22 @@ function deltaColor(weekData) {
     const t = calcDay(d);
     if (t !== null) { total += t; hasSomeData = true; }
   });
-  if (!hasSomeData) return new Color('#A09E98'); // gris : semaine sans données
+  if (!hasSomeData) return { delta: null, color: new Color('#A09E98'), dimColor: new Color('#A09E98') };
   const delta = total - objective;
-  if (delta >= 30)  return new Color('#60A5FA'); // bleu  : +30min bonus
-  if (delta >= 0)   return new Color('#4ADE80'); // vert  : objectif atteint
-  return new Color('#F87171');                    // rouge : déficit
+  if (delta >= 30)  return { delta, color: new Color('#60A5FA'), dimColor: new Color('#60A5FA', 0.6) };
+  if (delta >= 0)   return { delta, color: new Color('#4ADE80'), dimColor: new Color('#4ADE80', 0.6) };
+  return           { delta, color: new Color('#F87171'), dimColor: new Color('#F87171', 0.6) };
+}
+
+// Formate le delta en "+47 min" / "−12 min" / "+1h05"
+function formatDelta(minutes) {
+  if (minutes === null) return null;
+  const sign = minutes >= 0 ? '+' : '−'; // signe moins typographique
+  const abs  = Math.abs(minutes);
+  const h    = Math.floor(abs / 60);
+  const m    = abs % 60;
+  if (h > 0) return `${sign}${h}h${m > 0 ? String(m).padStart(2, '0') : ''}`;
+  return `${sign}${m} min`;
 }
 
 // ── Helpers nav ──────────────────────────────────────────────────
@@ -179,14 +189,23 @@ async function buildWidget() {
     if (!useTemplate) time = weekData[dayName]?.[field] || null;
     if (!time)        time = template[dayName]?.[field]  || null;
 
-    const color = deltaColor(weekData);
+    const { color, dimColor, delta } = weekStats(weekData);
+    const deltaStr = formatDelta(delta);
 
+    // Layout Option A : bloc serré centré — air en haut et en bas, pas entre les éléments
     w.addSpacer();
     const txt = w.addText(time || '—');
-    txt.font               = Font.boldSystemFont(36);
+    txt.font               = Font.boldSystemFont(34);
     txt.textColor          = time ? color : new Color('#A09E98');
     txt.minimumScaleFactor = 0.6;
     txt.centerAlignText();
+    if (deltaStr) {
+      w.addSpacer(3);
+      const dTxt = w.addText(deltaStr);
+      dTxt.font      = Font.mediumSystemFont(13);
+      dTxt.textColor = dimColor;
+      dTxt.centerAlignText();
+    }
     w.addSpacer();
 
   } catch (_) {
