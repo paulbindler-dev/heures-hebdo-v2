@@ -165,4 +165,37 @@
     }
   }
 
+  // Remplace window.fetch pour intercepter silencieusement les mutations de pointage Factorial.
+  // L'interception sur l'appel GraphQL est plus stable que surveiller le DOM :
+  // Factorial peut redéployer son UI, mais pas supprimer l'appel API qui enregistre le pointage.
+  const originalFetch = window.fetch.bind(window);
+  window.fetch = async function (...args) {
+    const response = await originalFetch(...args);
+
+    try {
+      const url = typeof args[0] === 'string' ? args[0] : (args[0]?.url || '');
+      const body = typeof args[1]?.body === 'string' ? args[1].body : '';
+
+      const isClockMutation =
+        url.includes('api.factorialhr.com/graphql') &&
+        (body.includes('clockIn') || body.includes('clockOut'));
+
+      if (isClockMutation && response.ok) {
+        // Cloner avant de lire — un ReadableStream ne peut être consommé qu'une seule fois
+        response.clone().json().then(json => {
+          if (json?.data && !json?.errors) {
+            syncToSupabase();
+          }
+        }).catch(() => {
+          // Réponse non-JSON inattendue : déclencher quand même pour ne pas rater un pointage
+          syncToSupabase();
+        });
+      }
+    } catch (_) {
+      // Ne jamais bloquer la requête originale de Factorial
+    }
+
+    return response;
+  };
+
 })();
