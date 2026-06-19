@@ -202,9 +202,8 @@ async function buildWidget() {
 }
 
 const widget = await buildWidget();
-if (config.runsInWidget) {
-  Script.setWidget(widget);
-} else {
+Script.setWidget(widget); // met à jour le widget home screen même depuis un run manuel
+if (!config.runsInWidget) {
   await widget.presentSmall();
 }
 Script.complete();
