@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Heures Hebdo — Auto-sync Factorial
 // @namespace    https://heures-hebdo.vercel.app
-// @version      2.2
+// @version      2.3
 // @description  Sync automatique des pointages Factorial vers Heures Hebdo
 // @author       Paul Bindler
 // @match        https://app.factorialhr.com/*
@@ -200,10 +200,8 @@
         (url.endsWith('?ClockOut') || url.endsWith('?ClockIn'));
 
       if (isClockMutation && response.ok) {
-        log('Pointage détecté →', url.endsWith('?ClockOut') ? 'ClockOut' : 'ClockIn', '→ lancement sync');
-        response.clone().json().then(json => {
-          if (json?.data && !json?.errors) syncToSupabase();
-        }).catch(() => {});
+        log('Pointage détecté →', url.endsWith('?ClockOut') ? 'ClockOut' : 'ClockIn', '→ lancement sync dans 1s');
+        setTimeout(syncToSupabase, 1000);
       }
     } catch (_) {}
 
