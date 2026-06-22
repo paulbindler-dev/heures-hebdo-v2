@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Heures Hebdo — Auto-sync Factorial
 // @namespace    https://heures-hebdo.vercel.app
-// @version      2.1
+// @version      2.2
 // @description  Sync automatique des pointages Factorial vers Heures Hebdo
 // @author       Paul Bindler
 // @match        https://app.factorialhr.com/*
@@ -182,9 +182,8 @@
     }
   }
 
-  // Intercepte window.fetch et logue toutes les requêtes GraphQL Factorial.
-  // Déclenche syncToSupabase() sur TimeTrackingClockInPage (chargement/rechargement
-  // de la vue de pointage, y compris après un clock-in/out si Factorial rafraîchit).
+  // Intercepte window.fetch et déclenche la sync sur ClockIn et ClockOut.
+  // Opérations confirmées depuis F12 le 2026-06-22 : graphql?ClockOut (et graphql?ClockIn par symétrie).
   const originalFetch = window.fetch.bind(window);
   window.fetch = async function (...args) {
     const response = await originalFetch(...args);
@@ -196,10 +195,12 @@
         log('GraphQL Factorial intercepté:', url);
       }
 
-      if (url.includes('factorialhr.com/graphql') &&
-          url.includes('TimeTrackingClockInPage') &&
-          response.ok) {
-        log('TimeTrackingClockInPage détecté → lancement sync');
+      const isClockMutation =
+        url.includes('factorialhr.com/graphql') &&
+        (url.endsWith('?ClockOut') || url.endsWith('?ClockIn'));
+
+      if (isClockMutation && response.ok) {
+        log('Pointage détecté →', url.endsWith('?ClockOut') ? 'ClockOut' : 'ClockIn', '→ lancement sync');
         response.clone().json().then(json => {
           if (json?.data && !json?.errors) syncToSupabase();
         }).catch(() => {});
