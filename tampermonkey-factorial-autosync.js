@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Heures Hebdo — Auto-sync Factorial
 // @namespace    https://heures-hebdo.vercel.app
-// @version      1.0
+// @version      2.1
 // @description  Sync automatique des pointages Factorial vers Heures Hebdo
 // @author       Paul Bindler
 // @match        https://app.factorialhr.com/*
@@ -17,22 +17,23 @@
   const EMP_ID       = '2275641';
   const DAYS         = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi'];
 
+  const log = (...args) => console.log('[factorial-sync]', ...args);
+
   function getSlug() {
-    let slug = localStorage.getItem('hh_slug');
+    let slug = localStorage.getItem('heures_slug');
     if (!slug) {
       slug = prompt('Heures Hebdo — Identifiant ? (ex: paulb)');
       if (!slug) return null;
-      localStorage.setItem('hh_slug', slug.trim());
+      localStorage.setItem('heures_slug', slug.trim());
     }
     return slug.trim();
   }
 
   function showToast(message, isError = false) {
-    const existing = document.getElementById('hh-toast');
+    const existing = document.getElementById('heures-toast');
     if (existing) existing.remove();
-
     const toast = document.createElement('div');
-    toast.id = 'hh-toast';
+    toast.id = 'heures-toast';
     toast.textContent = message;
     Object.assign(toast.style, {
       position:        'fixed',
@@ -50,18 +51,13 @@
       transition:      'opacity 0.3s',
     });
     document.body.appendChild(toast);
-
     setTimeout(() => {
       toast.style.opacity = '0';
       setTimeout(() => toast.remove(), 300);
-    }, isError ? 5000 : 2000);
+    }, isError ? 5000 : 2500);
   }
 
-  async function syncToSupabase() {
-    const slug = getSlug();
-    if (!slug) return;
-
-    // Lundi de la semaine courante
+  function getWeekRange() {
     const now = new Date();
     const dow = now.getDay();
     const mon = new Date(now);
@@ -70,42 +66,58 @@
     const fri = new Date(mon);
     fri.setDate(mon.getDate() + 4);
     const pad = n => String(n).padStart(2, '0');
-    const weekKey = `${mon.getFullYear()}-${pad(mon.getMonth() + 1)}-${pad(mon.getDate())}`;
+    const fmt = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    return { mon, fri, weekKey: fmt(mon), startOn: fmt(mon), endOn: fmt(fri) };
+  }
 
-    // Année/mois depuis l'URL Factorial (ex: /attendance/clock-in/daily/2026/6/19)
-    const um = location.pathname.match(/\/(\d{4})\/(\d+)\//);
-    const yr = um ? +um[1] : mon.getFullYear();
-    const mo = um ? +um[2] : mon.getMonth() + 1;
+  async function syncToSupabase() {
+    const slug = getSlug();
+    if (!slug) return;
 
-    // 1. Récupérer les shifts Factorial pour le mois
+    log('Sync déclenchée pour slug:', slug);
+
+    const { mon, fri, weekKey, startOn, endOn } = getWeekRange();
+
+    // 1. Récupérer les shifts Factorial pour la semaine
     let shifts;
     try {
-      const r = await fetch('https://api.factorialhr.com/graphql', {
+      const r = await fetch('https://api.factorialhr.com/graphql?SyncShifts', {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          query: `{
-            attendance {
-              employee(employeeId:"${EMP_ID}") {
-                attendanceShiftsConnection(year:${yr},month:${mo}) {
-                  nodes { clockIn clockOut referenceDate workable }
+          operationName: 'SyncShifts',
+          query: `
+            query SyncShifts($employeeId: ID!, $startOn: ISO8601Date!, $endOn: ISO8601Date!) {
+              attendance {
+                employee(id: $employeeId) {
+                  attendanceShiftsConnection(startOn: $startOn, endOn: $endOn) {
+                    nodes {
+                      clockIn
+                      clockOut
+                      referenceDate
+                      workable
+                    }
+                  }
                 }
               }
             }
-          }`
+          `,
+          variables: { employeeId: EMP_ID, startOn, endOn },
         })
       });
       const j = await r.json();
       shifts = j?.data?.attendance?.employee?.attendanceShiftsConnection?.nodes;
-      if (!shifts) throw new Error(JSON.stringify(j));
+      if (!shifts) throw new Error(JSON.stringify(j?.errors || j));
+      log('Shifts reçus de Factorial:', shifts.length, 'entrée(s)', shifts);
     } catch (e) {
+      log('ERREUR Factorial:', e.message);
       showToast('Heures Hebdo — Erreur Factorial : ' + e.message, true);
       return;
     }
 
-    // 2. Filtrer sur la semaine courante, regrouper par jour
-    // Note : bug Factorial — les timestamps clockIn/clockOut ont toujours la date d'aujourd'hui.
+    // 2. Regrouper par jour de semaine
+    // Note : bug Factorial — clockIn/clockOut ont toujours la date d'aujourd'hui en partie date.
     // On utilise referenceDate pour la vraie date, et on extrait seulement HH:MM des timestamps.
     const hhmm = iso => iso ? iso.substring(11, 16) : '';
     const byDay = {};
@@ -118,8 +130,9 @@
       const name = DAYS[idx];
       (byDay[name] = byDay[name] || []).push(s);
     });
+    log('Données par jour:', byDay);
 
-    // 3. Récupérer les données existantes Supabase (préserver fériés, extras)
+    // 3. Lire les données Supabase existantes (pour préserver fériés, extras, etc.)
     let existing = {};
     try {
       const r = await fetch(
@@ -127,12 +140,13 @@
         { headers: { 'apikey': ANON_KEY, 'Authorization': 'Bearer ' + ANON_KEY } }
       );
       existing = (await r.json())[0]?.data || {};
-    } catch (_) { }
+      log('Données Supabase existantes:', existing);
+    } catch (_) {}
 
-    // 4. Fusionner : shifts Factorial écrasent a1/d1/a2/d2, le reste est préservé
+    // 4. Fusionner : Factorial écrase a1/d1/a2/d2, tout le reste est préservé
     const merged = { ...existing };
     for (const [name, ss] of Object.entries(byDay)) {
-      ss.sort((a, b) => a.clockIn.localeCompare(b.clockIn));
+      ss.sort((a, b) => (a.clockIn || '').localeCompare(b.clockIn || ''));
       const [s1, s2] = ss;
       merged[name] = {
         ...(merged[name] || {}),
@@ -142,8 +156,9 @@
         d2: hhmm(s2?.clockOut) || '',
       };
     }
+    log('Données fusionnées à envoyer:', merged);
 
-    // 5. Upsert dans Supabase (PK composite slug + week_key)
+    // 5. Upsert Supabase (PK composite slug + week_key)
     try {
       const r = await fetch(
         `${SUPABASE_URL}/rest/v1/weeks?on_conflict=slug,week_key`,
@@ -153,49 +168,47 @@
             'apikey': ANON_KEY,
             'Authorization': 'Bearer ' + ANON_KEY,
             'Content-Type': 'application/json',
-            'Prefer': 'resolution=merge-duplicates'
+            'Prefer': 'resolution=merge-duplicates',
           },
-          body: JSON.stringify({ slug, week_key: weekKey, data: merged })
+          body: JSON.stringify({ slug, week_key: weekKey, data: merged }),
         }
       );
       if (!r.ok) throw new Error(await r.text());
+      log('Supabase upsert OK — semaine:', weekKey);
       showToast('✓ Heures Hebdo synchronisé');
     } catch (e) {
+      log('ERREUR Supabase:', e.message);
       showToast('Heures Hebdo — Erreur Supabase : ' + e.message, true);
     }
   }
 
-  // Remplace window.fetch pour intercepter silencieusement les mutations de pointage Factorial.
-  // L'interception sur l'appel GraphQL est plus stable que surveiller le DOM :
-  // Factorial peut redéployer son UI, mais pas supprimer l'appel API qui enregistre le pointage.
+  // Intercepte window.fetch et logue toutes les requêtes GraphQL Factorial.
+  // Déclenche syncToSupabase() sur TimeTrackingClockInPage (chargement/rechargement
+  // de la vue de pointage, y compris après un clock-in/out si Factorial rafraîchit).
   const originalFetch = window.fetch.bind(window);
   window.fetch = async function (...args) {
     const response = await originalFetch(...args);
 
     try {
       const url = typeof args[0] === 'string' ? args[0] : (args[0]?.url || '');
-      const body = typeof args[1]?.body === 'string' ? args[1].body : '';
 
-      const isClockMutation =
-        url.includes('factorialhr.com/graphql') &&
-        (url.includes('ClockIn') || url.includes('ClockOut'));
-
-      if (isClockMutation && response.ok) {
-        // Cloner avant de lire — un ReadableStream ne peut être consommé qu'une seule fois
-        response.clone().json().then(json => {
-          if (json?.data && !json?.errors) {
-            syncToSupabase();
-          }
-        }).catch(() => {
-          // Réponse non-JSON inattendue : déclencher quand même pour ne pas rater un pointage
-          syncToSupabase();
-        });
+      if (url.includes('factorialhr.com/graphql') && !url.includes('SyncShifts')) {
+        log('GraphQL Factorial intercepté:', url);
       }
-    } catch (_) {
-      // Ne jamais bloquer la requête originale de Factorial
-    }
+
+      if (url.includes('factorialhr.com/graphql') &&
+          url.includes('TimeTrackingClockInPage') &&
+          response.ok) {
+        log('TimeTrackingClockInPage détecté → lancement sync');
+        response.clone().json().then(json => {
+          if (json?.data && !json?.errors) syncToSupabase();
+        }).catch(() => {});
+      }
+    } catch (_) {}
 
     return response;
   };
+
+  log('Script chargé — en attente de pointage Factorial');
 
 })();
