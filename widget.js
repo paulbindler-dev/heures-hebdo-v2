@@ -231,12 +231,12 @@ async function buildWidget() {
 
     const txt = w.addText(time || '—');
     txt.font               = Font.boldSystemFont(52);
-    txt.textColor          = time ? new Color('#000000') : new Color('#8E8E93');
+    txt.textColor          = time ? color : new Color('#8E8E93');
     txt.minimumScaleFactor = 0.6;
     txt.centerAlignText();
 
     if (deltaStr) {
-      w.addSpacer(3);
+      w.addSpacer(5);
       const dTxt = w.addText(deltaStr);
       dTxt.font      = Font.mediumSystemFont(13);
       dTxt.textColor = color;
