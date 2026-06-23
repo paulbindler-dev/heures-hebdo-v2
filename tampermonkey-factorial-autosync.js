@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Heures Hebdo — Auto-sync Factorial
 // @namespace    https://heures-hebdo.vercel.app
-// @version      2.3
+// @version      2.4
 // @description  Sync automatique des pointages Factorial vers Heures Hebdo
 // @author       Paul Bindler
 // @match        https://app.factorialhr.com/*
@@ -88,7 +88,7 @@
         body: JSON.stringify({
           operationName: 'SyncShifts',
           query: `
-            query SyncShifts($employeeId: ID!, $startOn: ISO8601Date!, $endOn: ISO8601Date!) {
+            query SyncShifts($employeeId: Int!, $startOn: ISO8601Date!, $endOn: ISO8601Date!) {
               attendance {
                 employee(id: $employeeId) {
                   attendanceShiftsConnection(startOn: $startOn, endOn: $endOn) {
