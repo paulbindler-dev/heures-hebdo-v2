@@ -325,7 +325,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
       <tbody id="tbody"></tbody>
     </table>
   </div>
-  <p class="hint">Frappe libre : <code>730</code> → <code>07:30</code> &nbsp;·&nbsp; La pause se calcule automatiquement</p>
+  <p class="hint" id="hint-frappe">Frappe libre : <code>730</code> → <code>07:30</code> &nbsp;·&nbsp; La pause se calcule automatiquement</p>
 </div>
 
 <div class="overlay" id="overlay">
@@ -1007,6 +1007,10 @@ async function init(){
     return;
   }
   document.getElementById('loadingScreen').remove();
+  const fu = localStorage.getItem('heures_first_use');
+  if (!fu) localStorage.setItem('heures_first_use', Date.now());
+  else if (Date.now() - Number(fu) >= 21 * 24 * 60 * 60 * 1000)
+    document.getElementById('hint-frappe')?.remove();
 }
 
 init();

@@ -17,8 +17,6 @@
 
 // ── Config ───────────────────────────────────────────────────────
 const SUPABASE_URL = 'https://hmznrhoxeptkmstyavbc.supabase.co';
-// Couleur de fond (#111110) — remplacer par la couleur signature quand elle sera choisie
-const BG_COLOR    = '#111110';
 const ANON_KEY    = 'sb_publishable_pWEsnpJBGmTpF-3HSqpSxg_fufOVNrF';
 const APP_URL     = 'https://heures-hebdo.vercel.app';
 const SLUG        = args.widgetParameter || null;
@@ -157,19 +155,61 @@ async function fetchJSON(path) {
   return req.loadJSON();
 }
 
+// ── Clock face background ────────────────────────────────────────
+
+function drawClockFace(size) {
+  const dc = new DrawContext();
+  dc.size = new Size(size, size);
+  dc.opaque = true;
+  dc.respectScreenScale = true;
+
+  dc.setFillColor(new Color('#FFFFFF'));
+  dc.fillRect(new Rect(0, 0, size, size));
+
+  const cx = size / 2, cy = size / 2;
+  const outerR = size * 0.455;
+
+  for (let i = 0; i < 60; i++) {
+    const angle   = ((i * 6) - 90) * (Math.PI / 180);
+    const isHour  = i % 5 === 0;
+    const tickLen = isHour ? size * 0.055 : size * 0.027;
+
+    const x1 = cx + outerR * Math.cos(angle);
+    const y1 = cy + outerR * Math.sin(angle);
+    const x2 = cx + (outerR - tickLen) * Math.cos(angle);
+    const y2 = cy + (outerR - tickLen) * Math.sin(angle);
+
+    const path = new Path();
+    path.move(new Point(x1, y1));
+    path.addLine(new Point(x2, y2));
+    dc.addPath(path);
+    dc.setStrokeColor(isHour ? new Color('#8E8E93') : new Color('#C7C7CC'));
+    dc.setLineWidth(isHour ? 1.5 : 0.75);
+    dc.strokePath();
+  }
+
+  return dc.getImage();
+}
+
 // ── Widget ───────────────────────────────────────────────────────
+
+function contextLabel(field, useTemplate) {
+  if (field === 'a2') return 'Reprise midi';
+  return useTemplate ? 'Arrivée demain' : 'Arrivée';
+}
 
 async function buildWidget() {
   const w = new ListWidget();
-  w.backgroundColor  = new Color(BG_COLOR);
+  w.backgroundColor  = new Color('#FFFFFF');
+  w.backgroundImage  = drawClockFace(169);
   w.refreshAfterDate = nextRefreshDate();
   if (SLUG) w.url = `${APP_URL}/${SLUG}`;
 
   if (!SLUG) {
     w.addSpacer();
     const t = w.addText('Configure\nle widget →\nlong press');
-    t.textColor    = new Color('#A09E98');
-    t.font         = Font.systemFont(12);
+    t.textColor = new Color('#8E8E93');
+    t.font      = Font.systemFont(11);
     t.centerAlignText();
     w.addSpacer();
     return w;
@@ -189,30 +229,39 @@ async function buildWidget() {
     if (!useTemplate) time = weekData[dayName]?.[field] || null;
     if (!time)        time = template[dayName]?.[field]  || null;
 
-    const { color, dimColor, delta } = weekStats(weekData);
+    const { color, delta } = weekStats(weekData);
     const deltaStr = formatDelta(delta);
 
-    // Layout Option A : bloc serré centré — air en haut et en bas, pas entre les éléments
     w.addSpacer();
+
+    const lbl = w.addText(contextLabel(field, useTemplate).toUpperCase());
+    lbl.font          = Font.semiboldSystemFont(9);
+    lbl.textColor     = new Color('#8E8E93');
+    lbl.centerAlignText();
+
+    w.addSpacer(4);
+
     const txt = w.addText(time || '—');
     txt.font               = Font.boldSystemFont(34);
-    txt.textColor          = time ? color : new Color('#A09E98');
+    txt.textColor          = time ? new Color('#000000') : new Color('#8E8E93');
     txt.minimumScaleFactor = 0.6;
     txt.centerAlignText();
+
     if (deltaStr) {
       w.addSpacer(3);
       const dTxt = w.addText(deltaStr);
       dTxt.font      = Font.mediumSystemFont(13);
-      dTxt.textColor = dimColor;
+      dTxt.textColor = color;
       dTxt.centerAlignText();
     }
+
     w.addSpacer();
 
   } catch (_) {
     w.addSpacer();
     const err = w.addText('—');
-    err.font          = Font.boldSystemFont(36);
-    err.textColor     = new Color('#A09E98');
+    err.font      = Font.boldSystemFont(36);
+    err.textColor = new Color('#8E8E93');
     err.centerAlignText();
     w.addSpacer();
   }
