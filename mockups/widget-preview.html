@@ -73,36 +73,41 @@
     pointer-events: none;
   }
 
-  .widget-inner {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-    position: relative;
-    z-index: 1;
-  }
-
+  /* Heure centrée seule, delta ancré en bas */
   .time {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     font-size: 52px;
     font-weight: 700;
     line-height: 1;
     letter-spacing: -0.02em;
-    color: #000000;
+    white-space: nowrap;
+    z-index: 1;
   }
 
   .delta {
+    position: absolute;
+    bottom: 18px;
+    left: 50%;
+    transform: translateX(-50%);
     font-size: 13px;
     font-weight: 500;
     line-height: 1;
     letter-spacing: 0.01em;
+    white-space: nowrap;
+    z-index: 1;
   }
 
-  /* Delta colors — iOS system palette */
-  .green  .delta { color: #34C759; }
-  .blue   .delta { color: #007AFF; }
-  .red    .delta { color: #FF3B30; }
-  .muted  .time  { color: #8E8E93; }
-  .muted  .delta { color: #C7C7CC; }
+  /* Tout dans la couleur du statut */
+  .green .time  { color: #34C759; }
+  .green .delta { color: rgba(52,199,89,0.55); }
+  .blue  .time  { color: #007AFF; }
+  .blue  .delta { color: rgba(0,122,255,0.55); }
+  .red   .time  { color: #FF3B30; }
+  .red   .delta { color: rgba(255,59,48,0.55); }
+  .muted .time  { color: #8E8E93; }
 
   /* iPhone frame */
   .phone-frame {
@@ -152,7 +157,7 @@
   }
 
   .phone-widget-row .widget .time    { font-size: 26px; }
-  .phone-widget-row .widget .delta   { font-size: 10px; }
+  .phone-widget-row .widget .delta   { font-size: 10px; bottom: 13px; }
 
   .app-icon {
     width: 56px;
@@ -171,10 +176,8 @@
   <div class="col">
     <div class="widget green">
       <svg class="clock-ticks" viewBox="0 0 155 155"></svg>
-      <div class="widget-inner">
-        <span class="time">07:30</span>
-        <span class="delta">+47 min</span>
-      </div>
+      <span class="time">07:30</span>
+      <span class="delta">+47 min</span>
     </div>
     <span class="label">Objectif ok</span>
   </div>
@@ -204,9 +207,7 @@
   <div class="col">
     <div class="widget muted">
       <svg class="clock-ticks" viewBox="0 0 155 155"></svg>
-      <div class="widget-inner">
-        <span class="time">—</span>
-      </div>
+      <span class="time">—</span>
     </div>
     <span class="label">Sans données</span>
   </div>
