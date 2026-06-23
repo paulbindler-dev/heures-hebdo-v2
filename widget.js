@@ -155,30 +155,31 @@ async function fetchJSON(path) {
   return req.loadJSON();
 }
 
-// ── Clock face background ────────────────────────────────────────
+// ── Dessin complet du widget (ticks + texte) sur DrawContext ─────
+// Tout est dessiné sur le canvas pour un positionnement pixel-perfect.
 
-function drawClockFace(size) {
-  const dc = new DrawContext();
-  dc.size = new Size(size, size);
+function drawWidget(size, timeStr, deltaStr, color) {
+  const dc  = new DrawContext();
+  dc.size   = new Size(size, size);
   dc.opaque = true;
   dc.respectScreenScale = true;
 
+  // Fond blanc
   dc.setFillColor(new Color('#FFFFFF'));
   dc.fillRect(new Rect(0, 0, size, size));
 
   const cx = size / 2, cy = size / 2;
   const outerR = size * 0.455;
 
+  // Tirets cadran
   for (let i = 0; i < 60; i++) {
     const angle   = ((i * 6) - 90) * (Math.PI / 180);
     const isHour  = i % 5 === 0;
     const tickLen = isHour ? size * 0.055 : size * 0.027;
-
     const x1 = cx + outerR * Math.cos(angle);
     const y1 = cy + outerR * Math.sin(angle);
     const x2 = cx + (outerR - tickLen) * Math.cos(angle);
     const y2 = cy + (outerR - tickLen) * Math.sin(angle);
-
     const path = new Path();
     path.move(new Point(x1, y1));
     path.addLine(new Point(x2, y2));
@@ -188,6 +189,22 @@ function drawClockFace(size) {
     dc.strokePath();
   }
 
+  // Heure — centrée verticalement sur cy
+  const timePt  = Math.round(size * 0.308); // ≈52pt pour size=169
+  dc.setFont(Font.boldSystemFont(timePt));
+  dc.setTextColor(color);
+  dc.setTextAlignedCenter();
+  dc.drawTextInRect(timeStr, new Rect(8, cy - timePt * 0.6, size - 16, timePt * 1.1));
+
+  // Delta — collé juste en dessous
+  if (deltaStr) {
+    const deltaPt = Math.round(size * 0.077); // ≈13pt
+    dc.setFont(Font.mediumSystemFont(deltaPt));
+    dc.setTextColor(color);
+    dc.setTextAlignedCenter();
+    dc.drawTextInRect(deltaStr, new Rect(8, cy + timePt * 0.54, size - 16, deltaPt * 1.5));
+  }
+
   return dc.getImage();
 }
 
@@ -195,18 +212,13 @@ function drawClockFace(size) {
 
 async function buildWidget() {
   const w = new ListWidget();
-  w.backgroundColor  = new Color('#FFFFFF');
-  w.backgroundImage  = drawClockFace(169);
+  w.setPadding(0, 0, 0, 0);
   w.refreshAfterDate = nextRefreshDate();
   if (SLUG) w.url = `${APP_URL}/${SLUG}`;
 
   if (!SLUG) {
-    w.addSpacer();
-    const t = w.addText('Configure\nle widget →\nlong press');
-    t.textColor = new Color('#8E8E93');
-    t.font      = Font.systemFont(11);
-    t.centerAlignText();
-    w.addSpacer();
+    w.backgroundColor = new Color('#FFFFFF');
+    w.backgroundImage = drawWidget(169, '?', null, new Color('#8E8E93'));
     return w;
   }
 
@@ -225,33 +237,13 @@ async function buildWidget() {
     if (!time)        time = template[dayName]?.[field]  || null;
 
     const { color, delta } = weekStats(weekData);
-    const deltaStr = formatDelta(delta);
+    const deltaStr  = formatDelta(delta);
+    const drawColor = time ? color : new Color('#8E8E93');
 
-    w.addSpacer();
-
-    const txt = w.addText(time || '—');
-    txt.font               = Font.boldSystemFont(52);
-    txt.textColor          = time ? color : new Color('#8E8E93');
-    txt.minimumScaleFactor = 0.6;
-    txt.centerAlignText();
-
-    if (deltaStr) {
-      w.addSpacer(5);
-      const dTxt = w.addText(deltaStr);
-      dTxt.font      = Font.mediumSystemFont(13);
-      dTxt.textColor = color;
-      dTxt.centerAlignText();
-    }
-
-    w.addSpacer();
+    w.backgroundImage = drawWidget(169, time || '—', time ? deltaStr : null, drawColor);
 
   } catch (_) {
-    w.addSpacer();
-    const err = w.addText('—');
-    err.font      = Font.boldSystemFont(36);
-    err.textColor = new Color('#8E8E93');
-    err.centerAlignText();
-    w.addSpacer();
+    w.backgroundImage = drawWidget(169, '—', null, new Color('#8E8E93'));
   }
 
   return w;
