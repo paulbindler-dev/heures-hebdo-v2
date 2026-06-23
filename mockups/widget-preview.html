@@ -89,7 +89,7 @@
 
   .delta {
     position: absolute;
-    bottom: 18px;
+    top: calc(50% + 30px);
     left: 50%;
     transform: translateX(-50%);
     font-size: 13px;
@@ -100,13 +100,13 @@
     z-index: 1;
   }
 
-  /* Tout dans la couleur du statut */
+  /* Tout dans la couleur du statut, pleine opacité */
   .green .time  { color: #34C759; }
-  .green .delta { color: rgba(52,199,89,0.55); }
+  .green .delta { color: #34C759; }
   .blue  .time  { color: #007AFF; }
-  .blue  .delta { color: rgba(0,122,255,0.55); }
+  .blue  .delta { color: #007AFF; }
   .red   .time  { color: #FF3B30; }
-  .red   .delta { color: rgba(255,59,48,0.55); }
+  .red   .delta { color: #FF3B30; }
   .muted .time  { color: #8E8E93; }
 
   /* iPhone frame */
@@ -157,7 +157,7 @@
   }
 
   .phone-widget-row .widget .time    { font-size: 26px; }
-  .phone-widget-row .widget .delta   { font-size: 10px; bottom: 13px; }
+  .phone-widget-row .widget .delta   { font-size: 10px; top: calc(50% + 16px); }
 
   .app-icon {
     width: 56px;
