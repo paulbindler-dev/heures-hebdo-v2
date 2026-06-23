@@ -1,0 +1,21 @@
+{
+  "detector": {
+    "ignoreRules": [
+      "em-dash-overuse"
+    ],
+    "ignoreFiles": [
+      "app.html",
+      "heures-hebdo-v2/app.html",
+      "heures-hebdo-v2/index.html",
+      "mockups/widget-preview.html",
+      "/Volumes/SSD dock/Paulbindler.dock/Projets Claude/heures-hebdo-v2/mockups/widget-preview.html"
+    ],
+    "ignoreValues": [
+      {
+        "rule": "overused-font",
+        "value": "inter",
+        "createdAt": "2026-06-18T14:12:48.355Z"
+      }
+    ]
+  }
+}

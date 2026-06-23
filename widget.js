@@ -193,11 +193,6 @@ function drawClockFace(size) {
 
 // ── Widget ───────────────────────────────────────────────────────
 
-function contextLabel(field, useTemplate) {
-  if (field === 'a2') return 'Reprise midi';
-  return useTemplate ? 'Arrivée demain' : 'Arrivée';
-}
-
 async function buildWidget() {
   const w = new ListWidget();
   w.backgroundColor  = new Color('#FFFFFF');
@@ -234,15 +229,8 @@ async function buildWidget() {
 
     w.addSpacer();
 
-    const lbl = w.addText(contextLabel(field, useTemplate).toUpperCase());
-    lbl.font          = Font.semiboldSystemFont(9);
-    lbl.textColor     = new Color('#8E8E93');
-    lbl.centerAlignText();
-
-    w.addSpacer(4);
-
     const txt = w.addText(time || '—');
-    txt.font               = Font.boldSystemFont(34);
+    txt.font               = Font.boldSystemFont(52);
     txt.textColor          = time ? new Color('#000000') : new Color('#8E8E93');
     txt.minimumScaleFactor = 0.6;
     txt.centerAlignText();
