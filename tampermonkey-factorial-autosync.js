@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Heures Hebdo — Auto-sync Factorial
 // @namespace    https://heures-hebdo.vercel.app
-// @version      2.4
+// @version      2.5
 // @description  Sync automatique des pointages Factorial vers Heures Hebdo
 // @author       Paul Bindler
 // @match        https://app.factorialhr.com/*
@@ -14,7 +14,7 @@
 
   const SUPABASE_URL = 'https://hmznrhoxeptkmstyavbc.supabase.co';
   const ANON_KEY     = 'sb_publishable_pWEsnpJBGmTpF-3HSqpSxg_fufOVNrF';
-  const EMP_ID       = '2275641';
+  const EMP_ID       = 2275641;
   const DAYS         = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi'];
 
   const log = (...args) => console.log('[factorial-sync]', ...args);
