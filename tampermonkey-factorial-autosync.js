@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Heures Hebdo — Auto-sync Factorial
 // @namespace    https://heures-hebdo.vercel.app
-// @version      2.5
+// @version      2.6
 // @description  Sync automatique des pointages Factorial vers Heures Hebdo
 // @author       Paul Bindler
 // @match        https://app.factorialhr.com/*
@@ -148,13 +148,14 @@
     for (const [name, ss] of Object.entries(byDay)) {
       ss.sort((a, b) => (a.clockIn || '').localeCompare(b.clockIn || ''));
       const [s1, s2] = ss;
-      merged[name] = {
-        ...(merged[name] || {}),
-        a1: hhmm(s1?.clockIn),
-        d1: hhmm(s1?.clockOut),
-        a2: hhmm(s2?.clockIn) || '',
-        d2: hhmm(s2?.clockOut) || '',
-      };
+      const updates = {};
+      if (hhmm(s1?.clockIn))  updates.a1 = hhmm(s1.clockIn);
+      if (hhmm(s1?.clockOut)) updates.d1 = hhmm(s1.clockOut);
+      if (s2) {
+        if (hhmm(s2?.clockIn))  updates.a2 = hhmm(s2.clockIn);
+        if (hhmm(s2?.clockOut)) updates.d2 = hhmm(s2.clockOut);
+      }
+      merged[name] = { ...(merged[name] || {}), ...updates };
     }
     log('Données fusionnées à envoyer:', merged);
 
