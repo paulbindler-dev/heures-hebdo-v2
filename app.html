@@ -375,6 +375,19 @@ async function loadWeek(wk) {
   if (error) throw new Error('Lecture semaine : ' + error.message);
   return data ? data.data : null;
 }
+async function reloadWeek() {
+  try {
+    const weekData = await loadWeek(WK);
+    if (!weekData) return;
+    data[WK] = weekData;
+    DAYS.forEach(d => {
+      if (!data[WK][d]) data[WK][d] = {a1:'',d1:'',a2:'',d2:'',extras:[],ferie:false};
+      if (!data[WK][d].extras) data[WK][d].extras = [];
+      if (data[WK][d].ferie === undefined) data[WK][d].ferie = false;
+    });
+    render();
+  } catch (_) {}
+}
 async function saveWeek(wk, weekData) {
   const { error } = await sb.from('weeks').upsert(
     { slug: SLUG, week_key: wk, data: weekData }
@@ -1013,7 +1026,16 @@ async function init(){
     document.getElementById('hint-frappe')?.remove();
 }
 
-init();
+// Actualise les données quand la fenêtre reprend le focus (ex: après pointage Factorial en split view)
+let _focusTs = 0;
+window.addEventListener('focus', () => {
+  const now = Date.now();
+  if (now - _focusTs < 15000) return;
+  _focusTs = now;
+  reloadWeek();
+});
+
+init().then(() => { _focusTs = Date.now(); });
 </script>
 </body>
 </html>
