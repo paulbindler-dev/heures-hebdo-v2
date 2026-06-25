@@ -1062,16 +1062,34 @@ async function init(){
     document.getElementById('hint-frappe')?.remove();
 }
 
-// Actualise les données quand la fenêtre reprend le focus (ex: après pointage Factorial en split view)
+// Realtime — reçoit les mises à jour Supabase poussées par Tampermonkey (pointages Factorial)
+function subscribeRealtime() {
+  sb.channel('week-sync')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'weeks', filter: `slug=eq.${SLUG}` }, payload => {
+      if (payload.new?.week_key !== WK) return;
+      if (!payload.new?.data) return;
+      const incoming = payload.new.data;
+      DAYS.forEach(d => {
+        if (!incoming[d]) incoming[d] = {a1:'',d1:'',a2:'',d2:'',extras:[],ferie:false};
+        if (!incoming[d].extras) incoming[d].extras = [];
+        if (incoming[d].ferie === undefined) incoming[d].ferie = false;
+      });
+      data[WK] = incoming;
+      render();
+    })
+    .subscribe();
+}
+
+// Fallback focus — déclenche un rechargement si l'onglet reprend le focus (cooldown 4s)
 let _focusTs = 0;
 window.addEventListener('focus', () => {
   const now = Date.now();
-  if (now - _focusTs < 15000) return;
+  if (now - _focusTs < 4000) return;
   _focusTs = now;
   reloadWeek();
 });
 
-init().then(() => { _focusTs = Date.now(); });
+init().then(() => { _focusTs = Date.now(); subscribeRealtime(); });
 </script>
 </body>
 </html>
