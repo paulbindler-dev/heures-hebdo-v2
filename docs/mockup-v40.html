@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Heures Hebdo — Mockup v40</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root {
+  --bg:#F7F6F3;
+  --surface:#FFF;
+  --surface2:#F9F9F7;
+  --border:rgba(0,0,0,0.07);
+  --border2:rgba(0,0,0,0.14);
+  --text:#111110;
+  --text2:#5C5B57;
+  --text3:#737170;
+  --text4:#9A9895;
+  --green:#16A34A;
+  --red:#DC2626;
+  --red-bg:#FEF2F2;
+  --blue:#2563EB;
+  --blue-bg:#EFF6FF;
+  --mono:'JetBrains Mono','Fira Mono',monospace;
+  --sans:'Inter',-apple-system,sans-serif;
+  --r:10px;--r-lg:14px;--r-xl:18px;
+  --surface-hover:#F3F2EF;
+  --total-row-bg:#F2F1EE;
+  --primary-bg:#111110;
+  --primary-hover:#2A2926;
+  --primary-fg:#FFFFFF;
+  --bonus-border:rgba(37,99,235,0.18);
+  --neg-border:rgba(220,38,38,0.18);
+}
+
+body {
+  font-family:var(--sans);
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+  font-optical-sizing:auto;
+  padding-bottom:60px;
+}
+
+/* ─── ANNOUNCE ─── */
+.announce {
+  background:var(--primary-bg);
+  color:var(--primary-fg);
+  font-size:11px;
+  font-weight:500;
+  padding:9px 16px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;
+}
+.announce-badge {
+  background:rgba(255,255,255,0.14);
+  border-radius:99px;
+  padding:2px 9px;
+  font-size:10px;
+  font-weight:600;
+  letter-spacing:0.06em;
+  text-transform:uppercase;
+  flex-shrink:0;
+}
+.mode-switch {
+  display:flex;
+  align-items:center;
+  gap:2px;
+  background:rgba(255,255,255,0.08);
+  border:1px solid rgba(255,255,255,0.10);
+  border-radius:8px;
+  padding:2px;
+  flex-shrink:0;
+}
+.mode-switch-label {
+  font-size:10px;
+  color:rgba(255,255,255,0.45);
+  padding:0 6px 0 4px;
+}
+.mode-btn {
+  font-family:var(--sans);
+  font-size:10px;
+  font-weight:600;
+  padding:3px 9px;
+  border:none;
+  background:transparent;
+  color:rgba(255,255,255,0.45);
+  border-radius:6px;
+  cursor:pointer;
+  transition:background .12s, color .12s;
+  white-space:nowrap;
+}
+.mode-btn.active {
+  background:rgba(255,255,255,0.16);
+  color:#fff;
+}
+.announce-chips {
+  display:flex;
+  gap:5px;
+  flex-wrap:wrap;
+  margin-left:auto;
+}
+.announce-chip {
+  background:rgba(255,255,255,0.08);
+  border:1px solid rgba(255,255,255,0.10);
+  border-radius:6px;
+  padding:2px 8px;
+  font-size:10px;
+  color:rgba(255,255,255,0.65);
+  white-space:nowrap;
+}
+
+/* ─── APP ─── */
+.app { max-width:860px; width:100%; margin:0 auto; padding:28px 14px 0; }
+
+/* ─── HEADER ─── */
+.header {
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:18px;
+}
+.brand {}
+.app-name {
+  font-size:11px;
+  font-weight:500;
+  color:var(--text3);
+  margin-bottom:5px;
+}
+.week-sub {
+  font-size:28px;
+  font-weight:700;
+  letter-spacing:-0.04em;
+  color:var(--text);
+  line-height:1;
+  margin-bottom:8px;
+}
+
+/* Stats inline — visible en mode HEADER uniquement */
+.stats-inline {
+  display:none;
+  align-items:baseline;
+  gap:5px;
+  font-family:var(--mono);
+  font-variant-numeric:tabular-nums;
+}
+.si-total { font-size:14px; font-weight:600; color:var(--green); }
+.si-obj   { font-size:12px; color:var(--text3); }
+.si-sep   { font-size:11px; color:var(--text4); font-family:var(--sans); margin:0 2px; }
+.si-delta-label { font-size:11px; color:var(--text3); font-family:var(--sans); }
+.si-delta { font-size:14px; font-weight:600; }
+.si-delta.bonus { color:var(--blue); }
+.si-delta.neg   { color:var(--red); }
+
+/* Header right */
+.header-right {
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:8px;
+  flex-shrink:0;
+  padding-top:2px;
+}
+.save-indicator {
+  display:flex;
+  align-items:center;
+  gap:5px;
+  font-size:11px;
+  font-weight:500;
+  color:var(--green);
+}
+.save-dot {
+  width:6px;height:6px;
+  border-radius:50%;
+  background:currentColor;
+  flex-shrink:0;
+}
+.header-actions { display:flex; gap:7px; }
+
+/* ─── BOUTONS ─── */
+.btn {
+  font-family:var(--sans);
+  font-size:12px;
+  font-weight:500;
+  border-radius:var(--r);
+  border:1px solid var(--border2);
+  background:var(--surface);
+  color:var(--text2);
+  padding:7px 13px;
+  cursor:default;
+  white-space:nowrap;
+  line-height:1;
+}
+.btn:hover { background:var(--surface-hover); color:var(--text); }
+.btn-primary {
+  background:var(--primary-bg);
+  color:var(--primary-fg);
+  border-color:var(--primary-bg);
+}
+
+/* ─── STAT CARDS — visibles en mode CARTES uniquement ─── */
+.stats {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
+  margin-bottom:14px;
+}
+.stat {
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r-lg);
+  padding:13px 15px;
+}
+.stat-label {
+  font-size:10px;
+  font-weight:600;
+  letter-spacing:0.09em;
+  text-transform:uppercase;
+  color:var(--text3);
+  margin-bottom:5px;
+}
+.stat-val {
+  font-family:var(--sans);
+  font-size:48px;
+  font-weight:600;
+  letter-spacing:-0.03em;
+  line-height:1;
+  color:var(--text3);
+  font-variant-numeric:tabular-nums;
+}
+.stat-val.pos   { color:var(--green); }
+.stat-val.bonus { color:var(--blue); }
+.stat-val.neg   { color:var(--red); }
+.stat-sub { font-size:11px; color:var(--text3); margin-top:3px; }
+.stat.bonus-stat { background:var(--blue-bg); border-color:var(--bonus-border); }
+.stat.neg-stat   { background:var(--red-bg);  border-color:var(--neg-border); }
+
+/* ─── MODES ─── */
+/* CARTES (défaut) */
+.stats { display:grid; }
+.stats-inline { display:none; }
+
+/* HEADER */
+.app.mode-header .stats { display:none; }
+.app.mode-header .stats-inline { display:flex; }
+
+/* ─── CARD + TABLE ─── */
+.card {
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r-xl);
+  overflow:hidden;
+}
+.main-table {
+  width:100%;
+  border-collapse:collapse;
+  table-layout:fixed;
+}
+.main-table colgroup col.lbl-col { width:90px; }
+
+.main-table thead th {
+  padding:10px 4px 9px;
+  text-align:center;
+  font-size:11px;
+  font-weight:600;
+  color:var(--text2);
+  border-bottom:1px solid var(--border);
+  background:var(--surface2);
+  position:relative;
+}
+.main-table thead th:first-child {
+  text-align:left;
+  padding-left:12px;
+  color:var(--text4);
+  font-weight:400;
+  font-size:10px;
+}
+.day-th-inner { display:flex; flex-direction:column; align-items:center; }
+.day-name { font-size:11px; font-weight:600; color:var(--text2); white-space:nowrap; }
+.day-actions {
+  position:absolute;
+  right:4px;top:50%;
+  transform:translateY(-50%);
+}
+
+/* ─── BTN-DAY : visible à 35% au repos ─── */
+.btn-day {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:20px;height:20px;
+  border-radius:4px;
+  border:1px solid var(--border2);
+  background:transparent;
+  color:var(--text3);
+  cursor:pointer;
+  padding:0;
+  user-select:none;
+  opacity:0.35;
+  transition:opacity .15s,color .12s,background .12s,border-color .12s;
+}
+.day-th:hover .btn-day,.btn-day:focus-visible{opacity:1;}
+.btn-day:hover{color:var(--primary-fg);background:var(--primary-bg);border-color:var(--primary-bg);}
+
+/* ─── ROWS ─── */
+.sec-row td {
+  padding:8px 4px 2px 12px;
+  font-size:10px;font-weight:700;
+  letter-spacing:0.14em;text-transform:uppercase;
+  color:var(--text3);border-top:2px solid var(--bg);
+}
+.sec-row.first td{border-top:none;padding-top:6px;}
+
+.data-row td{padding:2px 3px;vertical-align:middle;height:30px;}
+.data-row td.row-label{
+  text-align:right;padding-right:8px;padding-left:12px;
+  font-size:11px;color:var(--text2);white-space:nowrap;
+}
+.data-row.pause-row td.row-label{color:var(--text3);font-size:11px;font-style:italic;}
+
+/* ─── TIME INPUT ─── */
+.ti {
+  font-family:var(--mono);
+  font-size:12px;
+  font-weight:500;
+  width:100%;
+  text-align:center;
+  background:var(--surface2);
+  border:1px solid transparent;
+  border-radius:6px;
+  padding:5px 2px;
+  color:var(--text);
+  outline:none;
+  cursor:default;
+  -webkit-appearance:none;
+  appearance:none;
+  font-variant-numeric:tabular-nums;
+}
+.ti.empty{
+  background:transparent;
+  border:1px dashed var(--border);
+  color:var(--text4);
+}
+.ti.auto{
+  color:var(--text3);
+  font-style:italic;
+  background:transparent;
+  border:1px dashed var(--border);
+}
+
+/* ─── TOTAL ROW ─── */
+.total-spacer td{padding:5px 0;}
+.total-row td{
+  padding:9px 4px;
+  text-align:center;
+  background:var(--total-row-bg);
+}
+.total-row td:first-child{
+  text-align:right;padding-right:8px;padding-left:12px;
+  font-size:10px;font-weight:600;
+  letter-spacing:0.07em;text-transform:uppercase;
+  color:var(--text3);
+}
+.day-total{
+  font-family:var(--mono);
+  font-size:16px;font-weight:700;
+  color:var(--text);display:block;
+  font-variant-numeric:tabular-nums;
+}
+.day-target{
+  display:block;font-size:10px;
+  color:var(--text3);
+  margin-top:1px;
+}
+
+/* ─── HINT ─── */
+.hint{text-align:center;font-size:11px;color:var(--text3);margin-top:11px;}
+.hint code{
+  font-family:var(--mono);font-size:10px;
+  background:var(--surface2);border-radius:4px;
+  padding:1px 4px;color:var(--text3);
+}
+
+/* ─── CHANGELOG ─── */
+.changelog{max-width:860px;margin:40px auto 0;padding:0 14px;}
+.changelog-title{
+  font-size:11px;font-weight:700;
+  letter-spacing:0.08em;text-transform:uppercase;
+  color:var(--text3);margin-bottom:12px;
+}
+.changelog-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;}
+.changelog-item{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-lg);padding:13px 15px;
+}
+.changelog-num{
+  font-size:10px;font-weight:700;color:var(--green);
+  font-family:var(--mono);margin-bottom:4px;letter-spacing:0.04em;
+}
+.changelog-label{font-size:12px;font-weight:600;color:var(--text);margin-bottom:3px;}
+.changelog-desc{font-size:11px;color:var(--text3);line-height:1.55;}
+.tag{
+  display:inline-block;font-family:var(--mono);font-size:10px;
+  border-radius:4px;padding:1px 6px;margin-top:5px;
+}
+.tag-before{background:var(--red-bg);color:var(--red);}
+.tag-after{background:#F0FDF4;color:var(--green);}
+
+/* ─── DARK MODE ─── */
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#1A1918;--surface:#242220;--surface2:#2A2826;
+    --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.14);
+    --text:#F0EFEC;--text2:#9C9A96;--text3:#8A8784;--text4:#6B6965;
+    --green:#4ADE80;--red:#F87171;--red-bg:rgba(248,113,113,0.12);
+    --blue:#60A5FA;--blue-bg:rgba(96,165,250,0.12);
+    --surface-hover:#333130;--total-row-bg:#1F1E1C;
+    --primary-bg:#E8E6E1;--primary-hover:#D0CEC9;--primary-fg:#111110;
+    --bonus-border:rgba(96,165,250,0.25);--neg-border:rgba(248,113,113,0.25);
+  }
+  .tag-after{background:rgba(74,222,128,0.1);}
+  .tag-before{background:rgba(248,113,113,0.1);}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition-duration:.01ms!important;}
+}
+</style>
+</head>
+<body>
+
+<!-- ─── BARRE D'ANNONCE ─── -->
+<div class="announce">
+  <span class="announce-badge">Mockup v40</span>
+  <span>Heures Hebdo — version cible</span>
+
+  <div class="mode-switch">
+    <span class="mode-switch-label">Stats :</span>
+    <button class="mode-btn active" id="btn-cards" onclick="setMode('cards')">⊞ Cartes</button>
+    <button class="mode-btn" id="btn-header" onclick="setMode('header')">— Header</button>
+  </div>
+
+  <div class="announce-chips">
+    <span class="announce-chip">0 · Instrument Sans</span>
+    <span class="announce-chip">① · Stats toggle</span>
+    <span class="announce-chip">② · Sauvegarde</span>
+    <span class="announce-chip">③ · ⋯ visibles</span>
+    <span class="announce-chip">④⑤ · Contraste</span>
+  </div>
+</div>
+
+<!-- ─── APP ─── -->
+<div class="app" id="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="brand">
+      <div class="app-name">Heures Hebdo</div>
+      <div class="week-sub">Semaine du 23 au 27 juin</div>
+      <!-- Stats inline — mode HEADER uniquement -->
+      <div class="stats-inline">
+        <span class="si-total">36h30</span>
+        <span class="si-obj">/ 35h</span>
+        <span class="si-sep">·</span>
+        <span class="si-delta-label">Δ</span>
+        <span class="si-delta bonus">+01:30</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="header-actions">
+        <button class="btn">Semaine type ▾</button>
+        <button class="btn btn-primary">Nouvelle semaine</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATS CARDS — mode CARTES uniquement -->
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-label">Total semaine</div>
+      <div class="stat-val pos">36h30</div>
+      <div class="stat-sub">/ 35h</div>
+    </div>
+    <div class="stat bonus-stat">
+      <div class="stat-label">Delta / objectif</div>
+      <div class="stat-val bonus">+01:30</div>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="card">
+    <table class="main-table">
+      <colgroup>
+        <col class="lbl-col"><col><col><col><col><col>
+      </colgroup>
+      <thead>
+        <tr>
+          <th></th>
+          <th class="day-th">
+            <div class="day-th-inner"><span class="day-name">Lundi</span></div>
+            <div class="day-actions">
+              <button class="btn-day" tabindex="-1">
+                <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor">
+                  <circle cx="3" cy="10" r="1.8"/><circle cx="10" cy="10" r="1.8"/><circle cx="17" cy="10" r="1.8"/>
+                </svg>
+              </button>
+            </div>
+          </th>
+          <th class="day-th">
+            <div class="day-th-inner"><span class="day-name">Mardi</span></div>
+            <div class="day-actions">
+              <button class="btn-day" tabindex="-1">
+                <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor">
+                  <circle cx="3" cy="10" r="1.8"/><circle cx="10" cy="10" r="1.8"/><circle cx="17" cy="10" r="1.8"/>
+                </svg>
+              </button>
+            </div>
+          </th>
+          <th class="day-th">
+            <div class="day-th-inner"><span class="day-name">Mercredi</span></div>
+            <div class="day-actions">
+              <button class="btn-day" tabindex="-1">
+                <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor">
+                  <circle cx="3" cy="10" r="1.8"/><circle cx="10" cy="10" r="1.8"/><circle cx="17" cy="10" r="1.8"/>
+                </svg>
+              </button>
+            </div>
+          </th>
+          <th class="day-th">
+            <div class="day-th-inner"><span class="day-name">Jeudi</span></div>
+            <div class="day-actions">
+              <button class="btn-day" tabindex="-1">
+                <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor">
+                  <circle cx="3" cy="10" r="1.8"/><circle cx="10" cy="10" r="1.8"/><circle cx="17" cy="10" r="1.8"/>
+                </svg>
+              </button>
+            </div>
+          </th>
+          <th class="day-th">
+            <div class="day-th-inner"><span class="day-name">Vendredi</span></div>
+            <div class="day-actions">
+              <button class="btn-day" tabindex="-1">
+                <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor">
+                  <circle cx="3" cy="10" r="1.8"/><circle cx="10" cy="10" r="1.8"/><circle cx="17" cy="10" r="1.8"/>
+                </svg>
+              </button>
+            </div>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+
+        <tr class="sec-row first"><td colspan="6"></td></tr>
+        <tr class="data-row">
+          <td class="row-label">Arrivée</td>
+          <td><input class="ti" value="08:00" type="text" readonly></td>
+          <td><input class="ti" value="08:00" type="text" readonly></td>
+          <td><input class="ti" value="07:45" type="text" readonly></td>
+          <td><input class="ti" value="08:00" type="text" readonly></td>
+          <td><input class="ti" value="08:00" type="text" readonly></td>
+        </tr>
+        <tr class="data-row">
+          <td class="row-label">Midi</td>
+          <td><input class="ti" value="13:00" type="text" readonly></td>
+          <td><input class="ti" value="13:00" type="text" readonly></td>
+          <td><input class="ti" value="13:00" type="text" readonly></td>
+          <td><input class="ti" value="13:00" type="text" readonly></td>
+          <td><input class="ti" value="12:00" type="text" readonly></td>
+        </tr>
+
+        <tr class="sec-row"><td colspan="6"></td></tr>
+        <tr class="data-row pause-row">
+          <td class="row-label">pause</td>
+          <td><input class="ti auto" value="01:00" type="text" readonly></td>
+          <td><input class="ti auto" value="01:00" type="text" readonly></td>
+          <td><input class="ti auto" value="01:15" type="text" readonly></td>
+          <td><input class="ti auto" value="01:00" type="text" readonly></td>
+          <td><input class="ti empty" value="" placeholder="—" type="text" readonly></td>
+        </tr>
+
+        <tr class="sec-row"><td colspan="6"></td></tr>
+        <tr class="data-row">
+          <td class="row-label">Reprise</td>
+          <td><input class="ti" value="14:00" type="text" readonly></td>
+          <td><input class="ti" value="14:00" type="text" readonly></td>
+          <td><input class="ti" value="14:15" type="text" readonly></td>
+          <td><input class="ti" value="14:00" type="text" readonly></td>
+          <td><input class="ti empty" value="" placeholder="--:--" type="text" readonly></td>
+        </tr>
+        <tr class="data-row">
+          <td class="row-label">Départ</td>
+          <td><input class="ti" value="17:00" type="text" readonly></td>
+          <td><input class="ti" value="17:00" type="text" readonly></td>
+          <td><input class="ti" value="17:30" type="text" readonly></td>
+          <td><input class="ti" value="17:00" type="text" readonly></td>
+          <td><input class="ti empty" value="" placeholder="--:--" type="text" readonly></td>
+        </tr>
+
+        <tr class="total-spacer"><td colspan="6"></td></tr>
+        <tr class="total-row">
+          <td>Total</td>
+          <td><span class="day-total">08:00</span><span class="day-target">/ 8h</span></td>
+          <td><span class="day-total">08:00</span><span class="day-target">/ 8h</span></td>
+          <td><span class="day-total">08:30</span><span class="day-target">/ 8h</span></td>
+          <td><span class="day-total">08:00</span><span class="day-target">/ 8h</span></td>
+          <td><span class="day-total">04:00</span><span class="day-target">/ 3h</span></td>
+        </tr>
+
+      </tbody>
+    </table>
+  </div>
+
+  <p class="hint">Frappe libre : <code>730</code> → <code>07:30</code> &nbsp;·&nbsp; La pause se calcule automatiquement</p>
+
+</div>
+
+<!-- ─── CHANGELOG ─── -->
+<div class="changelog">
+  <div class="changelog-title">6 changements par rapport à l'app actuelle</div>
+  <div class="changelog-grid">
+
+    <div class="changelog-item">
+      <div class="changelog-num">0 · POLICE</div>
+      <div class="changelog-label">Instrument Sans</div>
+      <div class="changelog-desc">Grotesque humaniste avec ink traps — meilleure lisibilité aux petites tailles. Italic natif pour les champs calculés. JetBrains Mono conservé pour les horaires.</div>
+      <div><span class="tag tag-before">Police précédente</span> <span class="tag tag-after">Instrument Sans</span></div>
+    </div>
+
+    <div class="changelog-item">
+      <div class="changelog-num">① · STATS</div>
+      <div class="changelog-label">Toggle Cartes / Header</div>
+      <div class="changelog-desc">Les deux vues sont disponibles. "Cartes" conserve le centre de gravité actuel — les gros chiffres que tu regardes en priorité. "Header" est l'alternative compacte.</div>
+      <div><span class="tag tag-after">Toggle en haut du mockup</span></div>
+    </div>
+
+    <div class="changelog-item">
+      <div class="changelog-num">② · SAUVEGARDE</div>
+      <div class="changelog-label">Confirmée en permanence</div>
+      <div class="changelog-desc">Un point vert discret confirme que tes données sont dans le cloud. Invisible sans y faire attention, rassurant quand on le cherche.</div>
+      <div><span class="tag tag-before">silencieux</span> <span class="tag tag-after">● Sauvegardé il y a 8s</span></div>
+    </div>
+
+    <div class="changelog-item">
+      <div class="changelog-num">③ · BOUTON ⋯</div>
+      <div class="changelog-label">Visible au repos</div>
+      <div class="changelog-desc">Les menus d'actions par jour (copier, férié, effacer…) apparaissent en grisé au lieu d'être totalement invisibles. On sait qu'ils existent.</div>
+      <div><span class="tag tag-before">opacity: 0</span> <span class="tag tag-after">opacity: 0.35</span></div>
+    </div>
+
+    <div class="changelog-item">
+      <div class="changelog-num">④ · TOTAUX</div>
+      <div class="changelog-label">Contraste / 8h corrigé</div>
+      <div class="changelog-desc">Les objectifs journaliers "/8h" et "/3h" passent d'un gris quasi-invisible à un gris lisible.</div>
+      <div><span class="tag tag-before">#CCCAC4 · 1.64:1</span> <span class="tag tag-after">#737170 · 4.98:1</span></div>
+    </div>
+
+    <div class="changelog-item">
+      <div class="changelog-num">⑤ · LABELS</div>
+      <div class="changelog-label">Contraste général</div>
+      <div class="changelog-desc">Tous les textes secondaires (labels stats, url-prefix, hints, nom de l'app) passent au-dessus du seuil WCAG AA de 4.5:1.</div>
+      <div><span class="tag tag-before">#A09E98 · 2.48:1</span> <span class="tag tag-after">#737170 · 4.98:1</span></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function setMode(mode) {
+  const app = document.getElementById('app');
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-' + mode).classList.add('active');
+  if (mode === 'header') app.classList.add('mode-header');
+  else app.classList.remove('mode-header');
+}
+</script>
+</body>
+</html>

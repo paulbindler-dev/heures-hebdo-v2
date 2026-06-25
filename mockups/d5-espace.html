@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Direction 5 — L'Espace</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --font-display: Georgia, 'Times New Roman', serif;
+  --font-body: -apple-system, system-ui, sans-serif;
+  --font-data: 'SF Mono', 'Fira Code', ui-monospace, monospace;
+
+  --bg: #FFFFFF;
+  --surface: #F7F6F3;
+  --text: #000000;
+  --text-2: #525252;
+  --text-3: #A3A3A3;
+  --border: #E5E5E5;
+  --border-light: #F0F0F0;
+  --today-accent: #000000;
+  --green: #16A34A;
+  --red: #DC2626;
+  --amber: #D97706;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding: 56px 48px 80px;
+  -webkit-font-smoothing: antialiased;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-2);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 48px;
+}
+
+.layout {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/* ── Page header ── */
+.page-header {
+  margin-bottom: 48px;
+}
+
+.page-eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-3);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.eyebrow-sep { color: var(--border); }
+
+.page-title {
+  font-family: var(--font-display);
+  font-size: 48px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  margin-bottom: 16px;
+}
+
+.page-meta {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--text-2);
+}
+
+.meta-item strong {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.meta-sep {
+  width: 1px;
+  height: 14px;
+  background: var(--border);
+}
+
+.meta-delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  background: #FEF9EC;
+  border: 1px solid #FDE68A;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--amber);
+  font-family: var(--font-data);
+}
+
+/* ── Week grid ── */
+.week-divider {
+  height: 1px;
+  background: var(--text);
+  margin-bottom: 0;
+}
+
+.week-grid {
+  display: grid;
+  grid-template-columns: 140px repeat(5, 1fr);
+  border-left: 1px solid var(--border);
+}
+
+/* Column headers */
+.grid-col-header {
+  padding: 20px 20px 16px;
+  border-right: 1px solid var(--border);
+  border-bottom: 2px solid var(--border);
+}
+
+.grid-col-header.label-col {
+  border-bottom: 2px solid var(--text);
+}
+
+.grid-col-header.today-col {
+  background: var(--surface);
+  border-bottom: 2px solid var(--text);
+}
+
+.col-day-name {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-3);
+  display: block;
+  margin-bottom: 6px;
+}
+
+.col-day-name.today { color: var(--text); }
+
+.col-day-date {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-3);
+  line-height: 1;
+}
+
+.col-day-date.today { color: var(--text); }
+
+.col-today-badge {
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Rows */
+.grid-row {
+  display: contents;
+}
+
+.grid-cell {
+  padding: 14px 20px;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+}
+
+.grid-cell.label-col {
+  border-right: 1px solid var(--border);
+}
+
+.grid-cell.today-col {
+  background: var(--surface);
+}
+
+.grid-cell.section-start {
+  border-top: 1px solid var(--border);
+}
+
+.cell-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.cell-time {
+  font-family: var(--font-data);
+  font-size: 14px;
+  color: var(--text);
+}
+
+.cell-time.future {
+  color: var(--text-3);
+  font-style: italic;
+}
+
+.cell-time.dash { color: var(--border); }
+
+.cell-computed {
+  font-family: var(--font-data);
+  font-size: 13px;
+  color: var(--text-3);
+}
+
+/* Total rows */
+.grid-cell.total-cell {
+  padding-top: 18px;
+  padding-bottom: 18px;
+  border-top: 1px solid var(--text);
+  border-bottom: 1px solid var(--border);
+}
+
+.cell-total {
+  font-family: var(--font-data);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.cell-total.future { color: var(--text-3); }
+.cell-total.today-val { color: var(--text); }
+
+.grid-cell.obj-cell {
+  border-bottom: 1px solid var(--border-light);
+}
+
+.cell-obj {
+  font-family: var(--font-data);
+  font-size: 11px;
+  color: var(--border);
+}
+
+.grid-cell.delta-cell {
+  border-bottom: none;
+  padding-bottom: 20px;
+}
+
+.cell-delta {
+  display: inline-flex;
+  padding: 3px 8px;
+  border-radius: 5px;
+  font-family: var(--font-data);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.delta-neg  { background: #FEF2F2; color: var(--red); }
+.delta-pos  { background: #F0FDF4; color: var(--green); }
+.delta-plan { color: var(--text-3); font-style: italic; font-size: 11px; }
+.delta-zero { background: #F0FDF4; color: var(--green); }
+
+/* ── Footer ── */
+.page-footer {
+  margin-top: 40px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.footer-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.footer-stat-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-3);
+  font-weight: 600;
+}
+
+.footer-stat-value {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1;
+}
+
+.footer-progress {
+  flex: 1;
+  margin: 0 48px;
+}
+
+.footer-progress-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-3);
+  font-family: var(--font-data);
+  margin-bottom: 8px;
+}
+
+.footer-progress-track {
+  height: 2px;
+  background: var(--border);
+  border-radius: 1px;
+  overflow: hidden;
+}
+
+.footer-progress-fill {
+  height: 100%;
+  background: var(--text);
+  width: 65.7%;
+}
+
+.footer-note {
+  font-size: 13px;
+  color: var(--text-2);
+  line-height: 1.4;
+  max-width: 220px;
+  text-align: right;
+}
+
+.footer-note strong { color: var(--text); font-weight: 600; }
+
+/* Dir label */
+.dir-label {
+  font-size: 11px;
+  color: var(--text-3);
+  text-align: center;
+  margin-top: 32px;
+}
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <div class="chip">Direction 5 — L'Espace · Notion / Arc / Editorial</div>
+
+  <!-- Page header -->
+  <div class="page-header">
+    <div class="page-eyebrow">
+      <span>Semaine 25</span>
+      <span class="eyebrow-sep">·</span>
+      <span>16 → 20 juin 2026</span>
+      <span class="eyebrow-sep">·</span>
+      <span>Mercredi soir</span>
+    </div>
+    <div class="page-title">Heures de la semaine</div>
+    <div class="page-meta">
+      <div class="meta-item"><strong>23h00</strong> faites</div>
+      <div class="meta-sep"></div>
+      <div class="meta-item"><strong>12h00</strong> restantes</div>
+      <div class="meta-sep"></div>
+      <div class="meta-item"><strong>35h00</strong> objectif</div>
+      <div class="meta-sep"></div>
+      <span class="meta-delta">−1h00 à rattraper</span>
+    </div>
+  </div>
+
+  <div class="week-divider"></div>
+
+  <!-- Week grid -->
+  <div class="week-grid">
+
+    <!-- Column headers -->
+    <div class="grid-col-header label-col"></div>
+    <div class="grid-col-header">
+      <span class="col-day-name">Lundi</span>
+      <span class="col-day-date">16</span>
+    </div>
+    <div class="grid-col-header">
+      <span class="col-day-name">Mardi</span>
+      <span class="col-day-date">17</span>
+    </div>
+    <div class="grid-col-header today-col">
+      <span class="col-day-name today">Mercredi</span>
+      <span class="col-day-date today">18</span>
+      <div class="col-today-badge">
+        <svg width="6" height="6" viewBox="0 0 6 6"><circle cx="3" cy="3" r="3" fill="#16A34A"/></svg>
+        Aujourd'hui
+      </div>
+    </div>
+    <div class="grid-col-header">
+      <span class="col-day-name">Jeudi</span>
+      <span class="col-day-date">19</span>
+    </div>
+    <div class="grid-col-header">
+      <span class="col-day-name">Vendredi</span>
+      <span class="col-day-date">20</span>
+    </div>
+
+    <!-- Arrivée matin -->
+    <div class="grid-cell label-col"><span class="cell-label">Arr. matin</span></div>
+    <div class="grid-cell"><span class="cell-time">09:00</span></div>
+    <div class="grid-cell"><span class="cell-time">09:00</span></div>
+    <div class="grid-cell today-col"><span class="cell-time">08:30</span></div>
+    <div class="grid-cell"><span class="cell-time future">09:00</span></div>
+    <div class="grid-cell"><span class="cell-time future">08:30</span></div>
+
+    <!-- Départ midi -->
+    <div class="grid-cell label-col"><span class="cell-label">Dép. midi</span></div>
+    <div class="grid-cell"><span class="cell-time">12:00</span></div>
+    <div class="grid-cell"><span class="cell-time">12:00</span></div>
+    <div class="grid-cell today-col"><span class="cell-time">12:30</span></div>
+    <div class="grid-cell"><span class="cell-time future">12:00</span></div>
+    <div class="grid-cell"><span class="cell-time future">11:30</span></div>
+
+    <!-- Pause -->
+    <div class="grid-cell label-col"><span class="cell-label">Pause</span></div>
+    <div class="grid-cell"><span class="cell-computed">1h00</span></div>
+    <div class="grid-cell"><span class="cell-computed">1h00</span></div>
+    <div class="grid-cell today-col"><span class="cell-computed">1h00</span></div>
+    <div class="grid-cell"><span class="cell-computed">1h00</span></div>
+    <div class="grid-cell"><span class="cell-time dash">—</span></div>
+
+    <!-- Arrivée ap-m -->
+    <div class="grid-cell label-col"><span class="cell-label">Arr. ap-m</span></div>
+    <div class="grid-cell"><span class="cell-time">13:00</span></div>
+    <div class="grid-cell"><span class="cell-time">13:00</span></div>
+    <div class="grid-cell today-col"><span class="cell-time">13:30</span></div>
+    <div class="grid-cell"><span class="cell-time future">13:00</span></div>
+    <div class="grid-cell"><span class="cell-time dash">—</span></div>
+
+    <!-- Départ soir -->
+    <div class="grid-cell label-col"><span class="cell-label">Dép. soir</span></div>
+    <div class="grid-cell"><span class="cell-time">17:00</span></div>
+    <div class="grid-cell"><span class="cell-time">17:30</span></div>
+    <div class="grid-cell today-col"><span class="cell-time">18:00</span></div>
+    <div class="grid-cell"><span class="cell-time future" style="color:var(--amber);font-style:normal;">19:00</span></div>
+    <div class="grid-cell"><span class="cell-time dash">—</span></div>
+
+    <!-- Total -->
+    <div class="grid-cell label-col total-cell"><span class="cell-label">Total</span></div>
+    <div class="grid-cell total-cell"><span class="cell-total">7h00</span></div>
+    <div class="grid-cell total-cell"><span class="cell-total">7h30</span></div>
+    <div class="grid-cell today-col total-cell"><span class="cell-total today-val">8h30</span></div>
+    <div class="grid-cell total-cell"><span class="cell-total future">9h00</span></div>
+    <div class="grid-cell total-cell"><span class="cell-total future">3h00</span></div>
+
+    <!-- Objectif -->
+    <div class="grid-cell label-col obj-cell"><span class="cell-label" style="color:var(--border)">Objectif</span></div>
+    <div class="grid-cell obj-cell"><span class="cell-obj">8h00</span></div>
+    <div class="grid-cell obj-cell"><span class="cell-obj">8h00</span></div>
+    <div class="grid-cell today-col obj-cell"><span class="cell-obj">8h00</span></div>
+    <div class="grid-cell obj-cell"><span class="cell-obj">8h00</span></div>
+    <div class="grid-cell obj-cell"><span class="cell-obj">3h00</span></div>
+
+    <!-- Delta -->
+    <div class="grid-cell label-col delta-cell"><span class="cell-label">Delta</span></div>
+    <div class="grid-cell delta-cell"><span class="cell-delta delta-neg">−1h00</span></div>
+    <div class="grid-cell delta-cell"><span class="cell-delta delta-neg">−0h30</span></div>
+    <div class="grid-cell today-col delta-cell"><span class="cell-delta delta-pos">+0h30</span></div>
+    <div class="grid-cell delta-cell"><span class="cell-delta delta-plan">+1h00 planifié</span></div>
+    <div class="grid-cell delta-cell"><span class="cell-delta delta-zero">±0</span></div>
+
+  </div>
+
+  <!-- Footer -->
+  <div class="page-footer">
+    <div class="footer-stat">
+      <span class="footer-stat-label">Fait</span>
+      <span class="footer-stat-value">23h00</span>
+    </div>
+
+    <div class="footer-progress">
+      <div class="footer-progress-labels">
+        <span>0h</span>
+        <span>35h objectif</span>
+      </div>
+      <div class="footer-progress-track">
+        <div class="footer-progress-fill"></div>
+      </div>
+    </div>
+
+    <div class="footer-note">
+      <strong>Jeudi à 19h00</strong> pour rattraper l'heure manquante. Semaine à l'équilibre vendredi soir.
+    </div>
+  </div>
+
+  <div class="dir-label">Parti pris : la semaine comme document habitable · Espace et typographie font tout le travail</div>
+
+</div>
+</body>
+</html>

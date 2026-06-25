@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Synthèse — Maquette</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root {
+  --font-body: -apple-system, system-ui, BlinkMacSystemFont, sans-serif;
+  --font-data: 'JetBrains Mono', ui-monospace, monospace;
+
+  --bg: #E9E6E0;
+  --surface: #FAFAF8;
+  --surface2: #F2EFE9;
+  --input-bg: #FFFFFF;
+  --input-bg-auto: transparent;
+  --border: rgba(0,0,0,0.07);
+  --border2: rgba(0,0,0,0.13);
+  --today-border: #2A5FC4;
+  --today-tint: rgba(42,95,196,0.04);
+
+  --text:  #16150E;
+  --text2: #5C5952;
+  --text3: #A8A49C;
+  --text4: #C8C5BE;
+
+  --accent:    #2A5FC4;
+  --green:     #166534;
+  --green-bg:  #F0FDF4;
+  --red:       #991B1B;
+  --red-bg:    #FEF2F2;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding: 32px 16px 80px;
+  -webkit-font-smoothing: antialiased;
+}
+.app { max-width: 860px; margin: 0 auto; }
+
+/* ── Header ── */
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  gap: 12px;
+}
+.app-name {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+.week-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text2);
+  margin-top: 2px;
+}
+.header-actions { display: flex; gap: 8px; }
+.btn {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 8px;
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  color: var(--text2);
+  padding: 7px 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.btn-primary { background: var(--text); color: #FAFAF8; border-color: var(--text); }
+
+/* ── Stats ── */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.stat {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px 18px;
+}
+.stat-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 8px;
+}
+.stat-val {
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--text3);
+}
+.stat-val.pos { color: var(--green); }
+.stat-val.neg { color: var(--red); }
+.stat-sub {
+  font-family: var(--font-data);
+  font-size: 11px;
+  color: var(--text4);
+  margin-top: 5px;
+}
+
+/* ── Card ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+/* ── Table ── */
+.main-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+colgroup col.lbl-col { width: 86px; }
+
+/* ── Day header button ── */
+.main-table thead th {
+  padding: 0;
+  border-bottom: 1px solid var(--border2);
+  background: var(--surface2);
+  vertical-align: middle;
+}
+.main-table thead th:first-child {
+  background: var(--surface2);
+}
+.main-table thead th.is-today {
+  border-top: 2px solid var(--today-border);
+  background: var(--surface);
+}
+
+.day-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  padding: 10px 6px 8px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  border-radius: 0;
+}
+.day-btn:hover { background: rgba(0,0,0,0.03); }
+
+.day-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text2);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.is-today .day-name { color: var(--accent); }
+
+.day-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--accent);
+  margin-top: 4px;
+}
+
+.day-more {
+  font-size: 13px;
+  color: var(--text4);
+  line-height: 1;
+  margin-top: 4px;
+  opacity: 0;
+  transition: opacity 0.1s;
+  letter-spacing: 0.05em;
+}
+.day-btn:hover .day-more { opacity: 1; }
+
+/* ── Section rows supprimées — remplacées par séparateur visuel ── */
+.sec-sep td {
+  padding: 0;
+  height: 8px;
+  background: var(--bg);
+}
+.sec-sep.first td { height: 0; }
+
+/* ── Data rows ── */
+.data-row td {
+  padding: 2px 3px;
+  vertical-align: middle;
+  height: 34px;
+}
+.data-row td.row-label {
+  text-align: right;
+  padding-right: 9px;
+  padding-left: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text2);
+  white-space: nowrap;
+}
+.data-row.pause-row td.row-label {
+  font-size: 10.5px;
+  color: var(--text3);
+  font-style: italic;
+  font-weight: 400;
+}
+.data-row td.is-today { background: var(--today-tint); }
+
+/* ── Time inputs ── */
+.ti {
+  font-family: var(--font-data);
+  font-size: 13px;
+  font-weight: 500;
+  width: 100%;
+  text-align: center;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 6px 2px;
+  color: var(--text);
+  display: block;
+  cursor: text;
+}
+.ti:hover { border-color: var(--border2); }
+
+.ti.auto-val {
+  color: var(--text3);
+  font-style: italic;
+  font-size: 12px;
+  font-weight: 400;
+  background: transparent;
+  border-color: transparent;
+  cursor: default;
+}
+.ti.empty {
+  color: var(--text4);
+  background: transparent;
+  border: 1px dashed var(--border2);
+}
+
+/* ── Total row ── */
+.total-spacer td { height: 8px; background: var(--bg); }
+
+.total-row td {
+  padding: 11px 4px 13px;
+  text-align: center;
+  background: var(--surface2);
+  border-top: 1px solid var(--border2);
+}
+.total-row td:first-child {
+  text-align: right;
+  padding-right: 9px;
+  padding-left: 12px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+.total-row td.is-today { background: rgba(42,95,196,0.05); }
+
+.day-total {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text);
+  display: block;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.day-total.empty {
+  font-family: var(--font-data);
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text4);
+}
+.day-target {
+  display: block;
+  font-size: 9.5px;
+  color: var(--text4);
+  margin-top: 3px;
+}
+.day-delta {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 5px;
+  font-family: var(--font-data);
+  font-size: 10px;
+  font-weight: 600;
+  margin-top: 5px;
+}
+.day-delta.neg { background: var(--red-bg);   color: var(--red); }
+.day-delta.pos { background: var(--green-bg); color: var(--green); }
+.day-delta.zero { background: rgba(0,0,0,0.04); color: var(--text3); }
+
+/* ── Hint ── */
+.hint {
+  text-align: center;
+  font-size: 11px;
+  color: var(--text4);
+  margin-top: 13px;
+}
+.hint code {
+  font-family: var(--font-data);
+  font-size: 10px;
+  background: rgba(0,0,0,0.05);
+  border-radius: 4px;
+  padding: 1px 5px;
+  color: var(--text3);
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- Header -->
+<div class="header">
+  <div>
+    <div class="app-name">Heures Hebdo</div>
+    <div class="week-label">Semaine du 16 au 20 juin 2026</div>
+  </div>
+  <div class="header-actions">
+    <button class="btn">Semaine type ▾</button>
+    <button class="btn btn-primary">Nouvelle semaine</button>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="stats">
+  <div class="stat">
+    <div class="stat-label">Total semaine</div>
+    <div class="stat-val pos">35h00</div>
+    <div class="stat-sub">/ 35h objectif</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">Delta / objectif</div>
+    <div class="stat-val pos">+0h00</div>
+  </div>
+</div>
+
+<!-- Table -->
+<div class="card">
+<table class="main-table">
+  <colgroup>
+    <col class="lbl-col">
+    <col><col><col><col><col>
+  </colgroup>
+  <thead>
+    <tr>
+      <th></th>
+      <th>
+        <button class="day-btn">
+          <span class="day-name">Lundi</span>
+          <span class="day-more">···</span>
+        </button>
+      </th>
+      <th>
+        <button class="day-btn">
+          <span class="day-name">Mardi</span>
+          <span class="day-more">···</span>
+        </button>
+      </th>
+      <th class="is-today">
+        <button class="day-btn">
+          <span class="day-name">Mercredi</span>
+          <span class="day-dot"></span>
+          <span class="day-more">···</span>
+        </button>
+      </th>
+      <th>
+        <button class="day-btn">
+          <span class="day-name">Jeudi</span>
+          <span class="day-more">···</span>
+        </button>
+      </th>
+      <th>
+        <button class="day-btn">
+          <span class="day-name">Vendredi</span>
+          <span class="day-more">···</span>
+        </button>
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+
+    <!-- Matin (sans label de section) -->
+    <tr class="sec-sep first"><td colspan="6"></td></tr>
+    <tr class="data-row">
+      <td class="row-label">Arrivée</td>
+      <td><div class="ti">09:00</div></td>
+      <td><div class="ti">09:00</div></td>
+      <td class="is-today"><div class="ti">08:30</div></td>
+      <td><div class="ti">09:00</div></td>
+      <td><div class="ti">08:30</div></td>
+    </tr>
+    <tr class="data-row">
+      <td class="row-label">Midi</td>
+      <td><div class="ti">12:00</div></td>
+      <td><div class="ti">12:00</div></td>
+      <td class="is-today"><div class="ti">12:30</div></td>
+      <td><div class="ti">12:00</div></td>
+      <td><div class="ti">11:30</div></td>
+    </tr>
+
+    <!-- Pause -->
+    <tr class="sec-sep"><td colspan="6"></td></tr>
+    <tr class="data-row pause-row">
+      <td class="row-label">Pause</td>
+      <td><div class="ti auto-val">1h00</div></td>
+      <td><div class="ti auto-val">1h00</div></td>
+      <td class="is-today"><div class="ti auto-val">1h00</div></td>
+      <td><div class="ti auto-val">1h00</div></td>
+      <td><div class="ti auto-val">—</div></td>
+    </tr>
+
+    <!-- Après-midi (sans label de section) -->
+    <tr class="sec-sep"><td colspan="6"></td></tr>
+    <tr class="data-row">
+      <td class="row-label">Reprise</td>
+      <td><div class="ti">13:00</div></td>
+      <td><div class="ti">13:00</div></td>
+      <td class="is-today"><div class="ti">13:30</div></td>
+      <td><div class="ti">13:00</div></td>
+      <td><div class="ti empty">--:--</div></td>
+    </tr>
+    <tr class="data-row">
+      <td class="row-label">Départ</td>
+      <td><div class="ti">17:00</div></td>
+      <td><div class="ti">17:30</div></td>
+      <td class="is-today"><div class="ti">18:00</div></td>
+      <td><div class="ti">19:00</div></td>
+      <td><div class="ti empty">--:--</div></td>
+    </tr>
+
+    <tr class="total-spacer"><td colspan="6"></td></tr>
+
+    <tr class="total-row">
+      <td>Total</td>
+      <td>
+        <span class="day-total">7h00</span>
+        <span class="day-target">/ 8h</span>
+        <span class="day-delta neg">−1h00</span>
+      </td>
+      <td>
+        <span class="day-total">7h30</span>
+        <span class="day-target">/ 8h</span>
+        <span class="day-delta neg">−0h30</span>
+      </td>
+      <td class="is-today">
+        <span class="day-total">8h30</span>
+        <span class="day-target">/ 8h</span>
+        <span class="day-delta pos">+0h30</span>
+      </td>
+      <td>
+        <span class="day-total">9h00</span>
+        <span class="day-target">/ 8h</span>
+        <span class="day-delta pos">+1h00</span>
+      </td>
+      <td>
+        <span class="day-total">3h00</span>
+        <span class="day-target">/ 3h</span>
+        <span class="day-delta zero">±0</span>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p class="hint">Frappe libre : <code>730</code> → <code>07:30</code> · La pause se calcule automatiquement</p>
+
+</div>
+</body>
+</html>

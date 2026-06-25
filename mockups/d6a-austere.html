@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>D6-A — L'Austère</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --font-display: Georgia, 'Times New Roman', serif;
+  --font-body: -apple-system, system-ui, sans-serif;
+  --font-data: 'SF Mono', 'Fira Code', ui-monospace, monospace;
+
+  --bg: #EDEAE4;
+  --card: #FFFFFF;
+  --card-footer: #F9F7F4;
+  --today-bg: #F4F2EE;
+  --text: #131211;
+  --text-2: #5A5751;
+  --text-3: #AEAAA4;
+  --border: #DEDAD3;
+  --border-light: #ECEAE5;
+  --future: #C4C0BA;
+  --neg: #922B1A;
+  --pos: #1C6637;
+  --amber: #96520A;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding: 48px 32px 80px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Shell ── */
+.shell {
+  max-width: 920px;
+  margin: 0 auto;
+}
+
+/* Chip label */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: rgba(255,255,255,0.6);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-3);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 24px;
+}
+
+/* ── Card ── */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 8px 32px rgba(0,0,0,0.07);
+}
+
+/* ── Header ── */
+.card-header {
+  padding: 24px 28px 22px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.nav-btn {
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-3);
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.week-info { flex: 1; margin: 0 4px; }
+
+.week-title {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.week-sub {
+  font-size: 11px;
+  color: var(--text-3);
+  margin-top: 3px;
+}
+
+.header-stats {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.stat-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+}
+
+.stat-label {
+  font-size: 11px;
+  color: var(--text-3);
+  line-height: 1;
+}
+
+.stat-value {
+  font-family: var(--font-data);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1;
+}
+
+.stat-value.neg { color: var(--neg); }
+
+.stat-sep {
+  width: 1px;
+  height: 28px;
+  background: var(--border);
+}
+
+/* ── Progress ── */
+.progress-bar {
+  height: 2px;
+  background: var(--border-light);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--text);
+  width: 65.7%;
+}
+
+/* ── Grid ── */
+.week-grid {
+  display: grid;
+  grid-template-columns: 138px repeat(5, 1fr);
+}
+
+/* Column headers */
+.grid-col-label-head {
+  padding: 14px 16px 12px 20px;
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+}
+
+.grid-col-head {
+  padding: 14px 14px 10px;
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border-light);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.grid-col-head:last-child { border-right: none; }
+.grid-col-head.is-today { background: var(--today-bg); }
+.grid-col-head.is-future { opacity: 0.7; }
+
+.col-day-name {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-3);
+  display: block;
+}
+
+.grid-col-head.is-today .col-day-name { color: var(--text-2); }
+
+.col-day-date {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-3);
+  line-height: 1;
+  display: block;
+}
+
+.grid-col-head.is-today .col-day-date { color: var(--text); }
+.grid-col-head.is-future .col-day-date { color: var(--future); }
+
+.col-today-pip {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--text);
+  margin-top: 2px;
+}
+
+.col-menu {
+  position: absolute;
+  top: 10px;
+  right: 8px;
+  font-size: 14px;
+  color: var(--border);
+  cursor: pointer;
+  line-height: 1;
+  padding: 2px 4px;
+}
+
+.grid-col-head.is-today .col-menu { color: var(--text-3); }
+
+/* Data rows */
+.grid-label-cell {
+  padding: 10px 12px 10px 20px;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+}
+
+.row-label {
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+.grid-data-cell {
+  padding: 10px 14px;
+  border-right: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+}
+
+.grid-data-cell:last-child { border-right: none; }
+.grid-data-cell.is-today { background: var(--today-bg); }
+
+.tc {
+  font-family: var(--font-data);
+  font-size: 14px;
+  color: var(--text);
+}
+
+.tc.future { color: var(--future); }
+.tc.dash { color: var(--border); }
+.tc.computed {
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+/* Total section */
+.grid-label-cell.total-cell {
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-light);
+  padding-top: 14px;
+  padding-bottom: 14px;
+}
+
+.grid-data-cell.total-cell {
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-light);
+  padding-top: 14px;
+  padding-bottom: 14px;
+}
+
+.tc-total {
+  font-family: var(--font-data);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.tc-total.future { color: var(--future); }
+
+.tc-obj {
+  font-family: var(--font-data);
+  font-size: 11px;
+  color: var(--border);
+}
+
+.grid-label-cell.obj-cell,
+.grid-data-cell.obj-cell {
+  padding-top: 5px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.grid-label-cell.delta-cell,
+.grid-data-cell.delta-cell {
+  padding-top: 8px;
+  padding-bottom: 14px;
+}
+
+.tc-delta {
+  font-family: var(--font-data);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.tc-delta.neg { color: var(--neg); }
+.tc-delta.pos { color: var(--pos); }
+.tc-delta.plan { color: var(--future); font-style: italic; font-size: 11px; }
+.tc-delta.zero { color: var(--text-3); }
+
+/* ── Card footer ── */
+.card-footer {
+  padding: 14px 28px;
+  background: var(--card-footer);
+  border-top: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.footer-legend {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}
+
+.legend-dot.done { background: var(--text); }
+.legend-dot.today { background: var(--text-2); }
+.legend-dot.plan { background: var(--border); border: 1px dashed var(--text-3); }
+
+.footer-spacer { flex: 1; }
+
+.footer-total-label {
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+.footer-total-val {
+  font-family: var(--font-data);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* Dir note */
+.dir-note {
+  font-size: 11px;
+  color: var(--text-3);
+  text-align: center;
+  margin-top: 20px;
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <div class="chip">D6-A — L'Austère · D4 + D1</div>
+
+  <div class="card">
+
+    <!-- Header -->
+    <div class="card-header">
+      <button class="nav-btn">←</button>
+      <div class="week-info">
+        <div class="week-title">Semaine du 16 juin 2026</div>
+        <div class="week-sub">S25 · Lun → Ven</div>
+      </div>
+      <div class="header-stats">
+        <div class="stat-block">
+          <span class="stat-label">Total fait</span>
+          <span class="stat-value">23h00</span>
+        </div>
+        <div class="stat-sep"></div>
+        <div class="stat-block">
+          <span class="stat-label">Delta semaine</span>
+          <span class="stat-value neg">−1h00</span>
+        </div>
+      </div>
+      <button class="nav-btn">→</button>
+    </div>
+
+    <!-- Progress -->
+    <div class="progress-bar">
+      <div class="progress-fill"></div>
+    </div>
+
+    <!-- Grid -->
+    <div class="week-grid">
+
+      <!-- Col headers -->
+      <div class="grid-col-label-head"></div>
+
+      <div class="grid-col-head">
+        <span class="col-day-name">Lundi</span>
+        <span class="col-day-date">16</span>
+        <span class="col-menu">⋯</span>
+      </div>
+      <div class="grid-col-head">
+        <span class="col-day-name">Mardi</span>
+        <span class="col-day-date">17</span>
+        <span class="col-menu">⋯</span>
+      </div>
+      <div class="grid-col-head is-today">
+        <span class="col-day-name">Mercredi</span>
+        <span class="col-day-date">18</span>
+        <div class="col-today-pip"></div>
+        <span class="col-menu">⋯</span>
+      </div>
+      <div class="grid-col-head is-future">
+        <span class="col-day-name">Jeudi</span>
+        <span class="col-day-date">19</span>
+        <span class="col-menu">⋯</span>
+      </div>
+      <div class="grid-col-head is-future">
+        <span class="col-day-name">Vendredi</span>
+        <span class="col-day-date">20</span>
+        <span class="col-menu">⋯</span>
+      </div>
+
+      <!-- Arrivée matin -->
+      <div class="grid-label-cell"><span class="row-label">Arrivée matin</span></div>
+      <div class="grid-data-cell"><span class="tc">09:00</span></div>
+      <div class="grid-data-cell"><span class="tc">09:00</span></div>
+      <div class="grid-data-cell is-today"><span class="tc">08:30</span></div>
+      <div class="grid-data-cell"><span class="tc future">09:00</span></div>
+      <div class="grid-data-cell"><span class="tc future">08:30</span></div>
+
+      <!-- Départ midi -->
+      <div class="grid-label-cell"><span class="row-label">Départ midi</span></div>
+      <div class="grid-data-cell"><span class="tc">12:00</span></div>
+      <div class="grid-data-cell"><span class="tc">12:00</span></div>
+      <div class="grid-data-cell is-today"><span class="tc">12:30</span></div>
+      <div class="grid-data-cell"><span class="tc future">12:00</span></div>
+      <div class="grid-data-cell"><span class="tc future">11:30</span></div>
+
+      <!-- Pause -->
+      <div class="grid-label-cell"><span class="row-label">Pause</span></div>
+      <div class="grid-data-cell"><span class="tc computed">1h00</span></div>
+      <div class="grid-data-cell"><span class="tc computed">1h00</span></div>
+      <div class="grid-data-cell is-today"><span class="tc computed">1h00</span></div>
+      <div class="grid-data-cell"><span class="tc computed future">1h00</span></div>
+      <div class="grid-data-cell"><span class="tc dash">—</span></div>
+
+      <!-- Arrivée ap-m -->
+      <div class="grid-label-cell"><span class="row-label">Arrivée ap-m</span></div>
+      <div class="grid-data-cell"><span class="tc">13:00</span></div>
+      <div class="grid-data-cell"><span class="tc">13:00</span></div>
+      <div class="grid-data-cell is-today"><span class="tc">13:30</span></div>
+      <div class="grid-data-cell"><span class="tc future">13:00</span></div>
+      <div class="grid-data-cell"><span class="tc dash">—</span></div>
+
+      <!-- Départ soir -->
+      <div class="grid-label-cell"><span class="row-label">Départ soir</span></div>
+      <div class="grid-data-cell"><span class="tc">17:00</span></div>
+      <div class="grid-data-cell"><span class="tc">17:30</span></div>
+      <div class="grid-data-cell is-today"><span class="tc">18:00</span></div>
+      <div class="grid-data-cell"><span class="tc future" style="color:var(--amber)">19:00</span></div>
+      <div class="grid-data-cell"><span class="tc dash">—</span></div>
+
+      <!-- Total -->
+      <div class="grid-label-cell total-cell"><span class="row-label">Total journée</span></div>
+      <div class="grid-data-cell total-cell"><span class="tc-total">7h00</span></div>
+      <div class="grid-data-cell total-cell"><span class="tc-total">7h30</span></div>
+      <div class="grid-data-cell is-today total-cell"><span class="tc-total">8h30</span></div>
+      <div class="grid-data-cell total-cell"><span class="tc-total future">9h00</span></div>
+      <div class="grid-data-cell total-cell"><span class="tc-total future">3h00</span></div>
+
+      <!-- Objectif -->
+      <div class="grid-label-cell obj-cell"><span class="row-label" style="color:var(--border)">Objectif</span></div>
+      <div class="grid-data-cell obj-cell"><span class="tc-obj">8h00</span></div>
+      <div class="grid-data-cell obj-cell"><span class="tc-obj">8h00</span></div>
+      <div class="grid-data-cell is-today obj-cell"><span class="tc-obj">8h00</span></div>
+      <div class="grid-data-cell obj-cell"><span class="tc-obj">8h00</span></div>
+      <div class="grid-data-cell obj-cell"><span class="tc-obj">3h00</span></div>
+
+      <!-- Delta -->
+      <div class="grid-label-cell delta-cell"><span class="row-label">Delta</span></div>
+      <div class="grid-data-cell delta-cell"><span class="tc-delta neg">−1h00</span></div>
+      <div class="grid-data-cell delta-cell"><span class="tc-delta neg">−0h30</span></div>
+      <div class="grid-data-cell is-today delta-cell"><span class="tc-delta pos">+0h30</span></div>
+      <div class="grid-data-cell delta-cell"><span class="tc-delta plan">+1h00</span></div>
+      <div class="grid-data-cell delta-cell"><span class="tc-delta zero">±0</span></div>
+
+    </div><!-- /week-grid -->
+
+    <!-- Card footer -->
+    <div class="card-footer">
+      <div class="footer-legend">
+        <div class="legend-item">
+          <div class="legend-dot done"></div>
+          Saisie validée
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot today"></div>
+          Aujourd'hui
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot plan"></div>
+          Planifié
+        </div>
+      </div>
+      <div class="footer-spacer"></div>
+      <span class="footer-total-label">Semaine projetée :</span>
+      <span class="footer-total-val">34h00 / 35h00</span>
+    </div>
+
+  </div><!-- /card -->
+
+  <div class="dir-note">Parti pris · Quasi-monochrome, fond chaud · Aucun chrome superflu · La table est l'interface</div>
+
+</div>
+</body>
+</html>

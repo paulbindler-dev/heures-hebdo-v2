@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Direction 1 — La Grille</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --text: #0F172A;
+  --text-2: #475569;
+  --text-3: #94A3B8;
+  --border: #E2E8F0;
+  --bg: #FFFFFF;
+  --bg-subtle: #F8FAFC;
+  --blue: #3B82F6;
+  --red: #EF4444;
+  --green: #10B981;
+  --amber: #F59E0B;
+  --mono: 'SF Mono', 'Fira Code', 'Consolas', ui-monospace, monospace;
+}
+
+body {
+  font-family: -apple-system, 'Inter', system-ui, sans-serif;
+  background: #F1F5F9;
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 24px 80px;
+  -webkit-font-smoothing: antialiased;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #2563EB;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 32px;
+}
+
+.card {
+  width: 100%;
+  max-width: 880px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 32px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 24px rgba(0,0,0,0.04);
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 28px;
+}
+
+.nav-btn {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-3);
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.week-info {
+  flex: 1;
+  margin: 0 16px;
+}
+
+.week-title {
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.week-sub {
+  font-size: 11px;
+  color: var(--text-3);
+  margin-top: 2px;
+}
+
+.week-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  border-radius: 8px;
+}
+
+.week-badge-total {
+  font-family: var(--mono);
+  font-size: 18px;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.week-badge-delta {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--red);
+  letter-spacing: 0.02em;
+}
+
+/* Progress */
+.progress-section {
+  margin-bottom: 24px;
+}
+
+.progress-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.progress-label {
+  font-size: 11px;
+  color: var(--text-3);
+  font-family: var(--mono);
+  letter-spacing: 0.02em;
+}
+
+.progress-track {
+  height: 3px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #3B82F6 0%, #60A5FA 100%);
+  width: 65.7%;
+  position: relative;
+}
+
+.progress-fill::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: -1px;
+  width: 5px;
+  height: 5px;
+  background: #2563EB;
+  border-radius: 50%;
+}
+
+/* Table */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 0;
+  text-align: center;
+}
+
+th:first-child, td:first-child {
+  text-align: left;
+}
+
+.col-label {
+  width: 148px;
+}
+
+.th-day {
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.th-day .d-name {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-3);
+}
+
+.th-day .d-date {
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--text);
+  margin-top: 2px;
+  line-height: 1;
+}
+
+.th-day.today .d-name { color: var(--blue); }
+.th-day.today .d-date {
+  color: #FFFFFF;
+  background: var(--blue);
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 4px;
+}
+
+.th-day.future .d-name { color: #CBD5E1; }
+.th-day.future .d-date { color: #CBD5E1; }
+
+.row-label {
+  font-size: 11px;
+  color: var(--text-3);
+  padding: 9px 0;
+  padding-right: 12px;
+}
+
+.tc {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--text);
+  padding: 9px 4px;
+}
+
+.tc.past {}
+.tc.today-col { background: #F8FBFF; }
+.tc.future { color: #B8C5D6; font-style: italic; }
+.tc.dash { color: var(--border); }
+
+.tc.pause {
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+.sep-row td {
+  border-top: 1px solid var(--border);
+  height: 16px;
+}
+
+.total-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-2);
+  padding-bottom: 2px;
+}
+
+.total-val {
+  font-family: var(--mono);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  padding-bottom: 2px;
+}
+.total-val.future { color: #B8C5D6; }
+
+.obj-label {
+  font-size: 11px;
+  color: var(--text-3);
+  padding-bottom: 4px;
+}
+
+.obj-val {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--border);
+  padding-bottom: 4px;
+}
+
+.delta-label {
+  font-size: 11px;
+  color: var(--text-3);
+  padding-bottom: 12px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 5px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.badge-neg { background: #FEF2F2; color: var(--red); }
+.badge-pos { background: #F0FDF4; color: var(--green); }
+.badge-plan { background: var(--bg-subtle); color: var(--text-3); font-style: italic; }
+.badge-zero { background: var(--bg-subtle); color: var(--text-3); }
+
+/* Alert */
+.alert {
+  margin-top: 20px;
+  padding: 11px 14px;
+  background: #FFFBEB;
+  border: 1px solid #FDE68A;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #78350F;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  line-height: 1.5;
+}
+
+.alert-icon { flex-shrink: 0; margin-top: 1px; }
+
+/* Legend */
+.legend {
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}
+
+/* Direction label */
+.dir-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-3);
+  margin-top: 24px;
+  text-align: center;
+  letter-spacing: 0.02em;
+}
+</style>
+</head>
+<body>
+
+<div class="chip">
+  <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+    <rect x="0.5" y="0.5" width="9" height="9" rx="2" stroke="#2563EB" stroke-width="1"/>
+    <path d="M2.5 5h5M5 2.5v5" stroke="#2563EB" stroke-width="1" stroke-linecap="round"/>
+  </svg>
+  Direction 1 — La Grille · Linear / Vercel
+</div>
+
+<div class="card">
+
+  <!-- Header -->
+  <div class="header">
+    <button class="nav-btn">←</button>
+    <div class="week-info">
+      <div class="week-title">Semaine du 16 juin 2026</div>
+      <div class="week-sub">S25 · Lundi → Vendredi</div>
+    </div>
+    <div class="week-badge">
+      <span class="week-badge-total">23h00</span>
+      <span style="color:#CBD5E1;font-size:12px;">/</span>
+      <span style="font-size:12px;color:#64748B;">35h00</span>
+      <span class="week-badge-delta">−1h00</span>
+    </div>
+    <button class="nav-btn" style="margin-left:12px;">→</button>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-section">
+    <div class="progress-meta">
+      <span class="progress-label">0h00</span>
+      <span class="progress-label" style="color:#64748B;">23h00 faites · 12h00 à planifier</span>
+      <span class="progress-label">35h00</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill"></div>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <table>
+    <col class="col-label">
+    <col><col><col><col><col>
+    <thead>
+      <tr>
+        <th></th>
+        <th class="th-day">
+          <div class="d-name">Lundi</div>
+          <div class="d-date">16</div>
+        </th>
+        <th class="th-day">
+          <div class="d-name">Mardi</div>
+          <div class="d-date">17</div>
+        </th>
+        <th class="th-day today">
+          <div class="d-name">Mercredi</div>
+          <div class="d-date">18</div>
+        </th>
+        <th class="th-day future">
+          <div class="d-name">Jeudi</div>
+          <div class="d-date">19</div>
+        </th>
+        <th class="th-day future">
+          <div class="d-name">Vendredi</div>
+          <div class="d-date">20</div>
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="row-label">Arrivée matin</td>
+        <td class="tc past">09:00</td>
+        <td class="tc past">09:00</td>
+        <td class="tc today-col">08:30</td>
+        <td class="tc future">09:00</td>
+        <td class="tc future">08:30</td>
+      </tr>
+      <tr>
+        <td class="row-label">Départ midi</td>
+        <td class="tc past">12:00</td>
+        <td class="tc past">12:00</td>
+        <td class="tc today-col">12:30</td>
+        <td class="tc future">12:00</td>
+        <td class="tc future">11:30</td>
+      </tr>
+      <tr>
+        <td class="row-label">Pause calculée</td>
+        <td class="tc past pause">1h00</td>
+        <td class="tc past pause">1h00</td>
+        <td class="tc today-col pause">1h00</td>
+        <td class="tc future pause">1h00</td>
+        <td class="tc dash">—</td>
+      </tr>
+      <tr>
+        <td class="row-label">Arrivée ap-m</td>
+        <td class="tc past">13:00</td>
+        <td class="tc past">13:00</td>
+        <td class="tc today-col">13:30</td>
+        <td class="tc future">13:00</td>
+        <td class="tc dash">—</td>
+      </tr>
+      <tr>
+        <td class="row-label">Départ soir</td>
+        <td class="tc past">17:00</td>
+        <td class="tc past">17:30</td>
+        <td class="tc today-col">18:00</td>
+        <td class="tc future">19:00</td>
+        <td class="tc dash">—</td>
+      </tr>
+      <tr class="sep-row"><td colspan="6"></td></tr>
+      <tr>
+        <td class="total-label">Total journée</td>
+        <td class="total-val">7h00</td>
+        <td class="total-val">7h30</td>
+        <td class="total-val" style="color:#3B82F6;">8h30</td>
+        <td class="total-val future">9h00</td>
+        <td class="total-val future">3h00</td>
+      </tr>
+      <tr>
+        <td class="obj-label">Objectif</td>
+        <td class="obj-val">8h00</td>
+        <td class="obj-val">8h00</td>
+        <td class="obj-val">8h00</td>
+        <td class="obj-val">8h00</td>
+        <td class="obj-val">3h00</td>
+      </tr>
+      <tr>
+        <td class="delta-label">Delta</td>
+        <td><span class="badge badge-neg">−1h00</span></td>
+        <td><span class="badge badge-neg">−0h30</span></td>
+        <td><span class="badge badge-pos">+0h30</span></td>
+        <td><span class="badge badge-plan">+1h00</span></td>
+        <td><span class="badge badge-zero">±0</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Alert -->
+  <div class="alert">
+    <svg class="alert-icon" width="14" height="14" viewBox="0 0 14 14" fill="none">
+      <path d="M7 1.5L12.5 11H1.5L7 1.5Z" stroke="#D97706" stroke-width="1.3" stroke-linejoin="round" fill="#FFFBEB"/>
+      <path d="M7 5.5v2.5" stroke="#D97706" stroke-width="1.3" stroke-linecap="round"/>
+      <circle cx="7" cy="9.5" r="0.6" fill="#D97706"/>
+    </svg>
+    <span>
+      <strong>−1h00 à rattraper.</strong> Jeudi est planifié à 9h00 (départ 19h00) pour équilibrer la semaine.
+      Si ce n'est pas possible, ajoutez +30 min jeudi et +30 min vendredi.
+    </span>
+  </div>
+
+  <!-- Legend -->
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#0F172A;"></div>
+      Heures saisies
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#B8C5D6;border:1px solid #E2E8F0;"></div>
+      Planifié (non validé)
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#3B82F6;"></div>
+      Aujourd'hui
+    </div>
+  </div>
+
+</div>
+
+<div class="dir-label">Parti pris : la donnée comme seul design · Aucune décoration, tout de l'information</div>
+
+</body>
+</html>

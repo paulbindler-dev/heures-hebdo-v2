@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>D6-B — La Précision</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --font-display: Georgia, 'Times New Roman', serif;
+  --font-body: -apple-system, system-ui, sans-serif;
+  --font-data: 'SF Mono', 'Fira Code', ui-monospace, monospace;
+
+  --bg: #FFFFFF;
+  --surface: #F8FAFC;
+  --today-bg: #F0F6FF;
+  --today-border: #BFDBFE;
+  --text: #0F172A;
+  --text-2: #475569;
+  --text-3: #94A3B8;
+  --border: #E2E8F0;
+  --border-light: #F1F5F9;
+  --future: #CBD5E1;
+  --blue: #2563EB;
+  --neg-bg: #FEF2F2;
+  --neg: #DC2626;
+  --pos-bg: #F0FDF4;
+  --pos: #16A34A;
+  --amber: #D97706;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding: 48px 32px 80px;
+  -webkit-font-smoothing: antialiased;
+}
+
+.shell {
+  max-width: 920px;
+  margin: 0 auto;
+}
+
+/* Chip label */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: #EFF6FF;
+  border: 1px solid var(--today-border);
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--blue);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 28px;
+}
+
+/* ── Header ── */
+.page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.header-left {}
+
+.week-eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-3);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.week-nav-btn {
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-3);
+  font-size: 11px;
+}
+
+.week-title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.header-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  padding-bottom: 2px;
+}
+
+.total-done {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+}
+
+.total-done-num {
+  font-family: var(--font-data);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1;
+}
+
+.total-done-of {
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+.delta-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  background: var(--neg-bg);
+  border: 1px solid #FECACA;
+  border-radius: 20px;
+  font-family: var(--font-data);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--neg);
+}
+
+/* ── Progress ── */
+.progress-section {
+  margin-bottom: 24px;
+}
+
+.progress-track {
+  height: 3px;
+  background: var(--border-light);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--blue);
+  border-radius: 2px;
+  width: 65.7%;
+}
+
+/* ── Grid ── */
+.week-grid {
+  display: grid;
+  grid-template-columns: 136px repeat(5, 1fr);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* Column headers */
+.col-head-label {
+  padding: 14px 14px 12px 20px;
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.col-head {
+  padding: 14px 14px 10px;
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border-light);
+  background: var(--surface);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.col-head:last-child { border-right: none; }
+
+.col-head.is-today {
+  background: var(--today-bg);
+  border-bottom: 1px solid var(--today-border);
+  border-right: 1px solid var(--today-border);
+}
+
+.col-day-name {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-3);
+  display: block;
+}
+
+.col-head.is-today .col-day-name { color: var(--blue); }
+
+.col-day-date {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-3);
+  line-height: 1;
+  display: block;
+}
+
+.col-head.is-today .col-day-date {
+  color: var(--blue);
+}
+
+.col-head.is-future .col-day-date { color: var(--future); }
+.col-head.is-future .col-day-name { color: var(--future); }
+
+.col-menu {
+  position: absolute;
+  top: 10px;
+  right: 8px;
+  font-size: 14px;
+  color: var(--border);
+  cursor: pointer;
+  padding: 2px 4px;
+}
+
+.col-head.is-today .col-menu { color: var(--today-border); }
+
+/* Data cells */
+.label-cell {
+  padding: 10px 12px 10px 20px;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+}
+
+.data-cell {
+  padding: 10px 14px;
+  border-right: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+}
+
+.data-cell:last-child { border-right: none; }
+
+.data-cell.is-today {
+  background: var(--today-bg);
+  border-right: 1px solid var(--today-border);
+}
+
+.row-label {
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+.tc {
+  font-family: var(--font-data);
+  font-size: 14px;
+  color: var(--text);
+}
+
+.tc.future { color: var(--future); }
+.tc.dash { color: var(--border); }
+.tc.computed { font-size: 11px; color: var(--text-3); }
+
+/* Total section */
+.label-cell.total-cell,
+.data-cell.total-cell {
+  border-top: 2px solid var(--border);
+  border-bottom: 1px solid var(--border-light);
+  padding-top: 14px;
+  padding-bottom: 14px;
+}
+
+.data-cell.is-today.total-cell {
+  border-top: 2px solid var(--today-border);
+}
+
+.tc-total {
+  font-family: var(--font-data);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.tc-total.future { color: var(--future); }
+.tc-total.today-val { color: var(--blue); }
+
+/* Objectif */
+.label-cell.obj-cell,
+.data-cell.obj-cell {
+  padding-top: 5px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.tc-obj {
+  font-family: var(--font-data);
+  font-size: 11px;
+  color: var(--border);
+}
+
+/* Delta */
+.label-cell.delta-cell,
+.data-cell.delta-cell {
+  padding-top: 8px;
+  padding-bottom: 16px;
+  border-bottom: none;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 5px;
+  font-family: var(--font-data);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.badge-neg  { background: var(--neg-bg);  color: var(--neg); }
+.badge-pos  { background: var(--pos-bg);  color: var(--pos); }
+.badge-plan { color: var(--future); font-style: italic; font-size: 11px; }
+.badge-zero { background: var(--pos-bg);  color: var(--pos); }
+
+/* ── Footer ── */
+.page-footer {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.footer-legend {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+.legend-swatch {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}
+
+.legend-swatch.done { background: var(--text); }
+.legend-swatch.today { background: var(--blue); }
+.legend-swatch.plan { background: var(--border); border: 1px dashed var(--text-3); }
+
+.footer-projected {
+  font-size: 11px;
+  color: var(--text-3);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.footer-projected-val {
+  font-family: var(--font-data);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* Dir note */
+.dir-note {
+  font-size: 11px;
+  color: var(--text-3);
+  text-align: center;
+  margin-top: 24px;
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <div class="chip">D6-B — La Précision · D1 + D2</div>
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-left">
+      <div class="week-eyebrow">
+        <button class="week-nav-btn">←</button>
+        S25
+        <button class="week-nav-btn">→</button>
+      </div>
+      <div class="week-title">Semaine du 16 juin 2026</div>
+    </div>
+    <div class="header-right">
+      <div class="total-done">
+        <span class="total-done-num">23h00</span>
+        <span class="total-done-of">/ 35h00</span>
+      </div>
+      <span class="delta-pill">−1h00</span>
+    </div>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-section">
+    <div class="progress-track">
+      <div class="progress-fill"></div>
+    </div>
+  </div>
+
+  <!-- Grid -->
+  <div class="week-grid">
+
+    <!-- Column headers -->
+    <div class="col-head-label"></div>
+
+    <div class="col-head">
+      <span class="col-day-name">Lundi</span>
+      <span class="col-day-date">16</span>
+      <span class="col-menu">⋯</span>
+    </div>
+    <div class="col-head">
+      <span class="col-day-name">Mardi</span>
+      <span class="col-day-date">17</span>
+      <span class="col-menu">⋯</span>
+    </div>
+    <div class="col-head is-today">
+      <span class="col-day-name">Mercredi</span>
+      <span class="col-day-date">18</span>
+      <span class="col-menu">⋯</span>
+    </div>
+    <div class="col-head is-future">
+      <span class="col-day-name">Jeudi</span>
+      <span class="col-day-date">19</span>
+      <span class="col-menu">⋯</span>
+    </div>
+    <div class="col-head is-future">
+      <span class="col-day-name">Vendredi</span>
+      <span class="col-day-date">20</span>
+      <span class="col-menu">⋯</span>
+    </div>
+
+    <!-- Arrivée matin -->
+    <div class="label-cell"><span class="row-label">Arrivée matin</span></div>
+    <div class="data-cell"><span class="tc">09:00</span></div>
+    <div class="data-cell"><span class="tc">09:00</span></div>
+    <div class="data-cell is-today"><span class="tc">08:30</span></div>
+    <div class="data-cell"><span class="tc future">09:00</span></div>
+    <div class="data-cell"><span class="tc future">08:30</span></div>
+
+    <!-- Départ midi -->
+    <div class="label-cell"><span class="row-label">Départ midi</span></div>
+    <div class="data-cell"><span class="tc">12:00</span></div>
+    <div class="data-cell"><span class="tc">12:00</span></div>
+    <div class="data-cell is-today"><span class="tc">12:30</span></div>
+    <div class="data-cell"><span class="tc future">12:00</span></div>
+    <div class="data-cell"><span class="tc future">11:30</span></div>
+
+    <!-- Pause -->
+    <div class="label-cell"><span class="row-label">Pause</span></div>
+    <div class="data-cell"><span class="tc computed">1h00</span></div>
+    <div class="data-cell"><span class="tc computed">1h00</span></div>
+    <div class="data-cell is-today"><span class="tc computed">1h00</span></div>
+    <div class="data-cell"><span class="tc computed future">1h00</span></div>
+    <div class="data-cell"><span class="tc dash">—</span></div>
+
+    <!-- Arrivée ap-m -->
+    <div class="label-cell"><span class="row-label">Arrivée ap-m</span></div>
+    <div class="data-cell"><span class="tc">13:00</span></div>
+    <div class="data-cell"><span class="tc">13:00</span></div>
+    <div class="data-cell is-today"><span class="tc">13:30</span></div>
+    <div class="data-cell"><span class="tc future">13:00</span></div>
+    <div class="data-cell"><span class="tc dash">—</span></div>
+
+    <!-- Départ soir -->
+    <div class="label-cell"><span class="row-label">Départ soir</span></div>
+    <div class="data-cell"><span class="tc">17:00</span></div>
+    <div class="data-cell"><span class="tc">17:30</span></div>
+    <div class="data-cell is-today"><span class="tc">18:00</span></div>
+    <div class="data-cell"><span class="tc future" style="color:var(--amber)">19:00</span></div>
+    <div class="data-cell"><span class="tc dash">—</span></div>
+
+    <!-- Total -->
+    <div class="label-cell total-cell"><span class="row-label">Total journée</span></div>
+    <div class="data-cell total-cell"><span class="tc-total">7h00</span></div>
+    <div class="data-cell total-cell"><span class="tc-total">7h30</span></div>
+    <div class="data-cell is-today total-cell"><span class="tc-total today-val">8h30</span></div>
+    <div class="data-cell total-cell"><span class="tc-total future">9h00</span></div>
+    <div class="data-cell total-cell"><span class="tc-total future">3h00</span></div>
+
+    <!-- Objectif -->
+    <div class="label-cell obj-cell"><span class="row-label" style="color:var(--border)">Objectif</span></div>
+    <div class="data-cell obj-cell"><span class="tc-obj">8h00</span></div>
+    <div class="data-cell obj-cell"><span class="tc-obj">8h00</span></div>
+    <div class="data-cell is-today obj-cell"><span class="tc-obj">8h00</span></div>
+    <div class="data-cell obj-cell"><span class="tc-obj">8h00</span></div>
+    <div class="data-cell obj-cell"><span class="tc-obj">3h00</span></div>
+
+    <!-- Delta -->
+    <div class="label-cell delta-cell"><span class="row-label">Delta</span></div>
+    <div class="data-cell delta-cell"><span class="badge badge-neg">−1h00</span></div>
+    <div class="data-cell delta-cell"><span class="badge badge-neg">−0h30</span></div>
+    <div class="data-cell is-today delta-cell"><span class="badge badge-pos">+0h30</span></div>
+    <div class="data-cell delta-cell"><span class="badge badge-plan">+1h00</span></div>
+    <div class="data-cell delta-cell"><span class="badge badge-zero">±0</span></div>
+
+  </div><!-- /week-grid -->
+
+  <!-- Footer -->
+  <div class="page-footer">
+    <div class="footer-legend">
+      <div class="legend-item">
+        <div class="legend-swatch done"></div>
+        Saisie validée
+      </div>
+      <div class="legend-item">
+        <div class="legend-swatch today"></div>
+        Aujourd'hui
+      </div>
+      <div class="legend-item">
+        <div class="legend-swatch plan"></div>
+        Planifié
+      </div>
+    </div>
+    <div class="footer-projected">
+      Semaine projetée :
+      <span class="footer-projected-val">34h00 / 35h00</span>
+    </div>
+  </div>
+
+  <div class="dir-note">Parti pris · Blanc pur, accent bleu sur aujourd'hui · Badges de delta colorés · Grille dans un cadre arrondi</div>
+
+</div>
+</body>
+</html>

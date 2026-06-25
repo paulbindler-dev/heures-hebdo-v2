@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aperçu — changements app.html</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Copie exacte des variables et CSS de app.html */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root {
+  --bg:#F7F6F3;--surface:#FFF;--surface2:#F9F9F7;
+  --border:rgba(0,0,0,0.07);--border2:rgba(0,0,0,0.14);
+  --text:#111110;--text2:#5C5B57;--text3:#A09E98;--text4:#CCCAC4;
+  --green:#16A34A;--red:#DC2626;--red-bg:#FEF2F2;
+  --blue:#2563EB;--blue-bg:#EFF6FF;
+  --mono:'JetBrains Mono','Fira Mono',monospace;
+  --sans:'Inter',-apple-system,sans-serif;
+  --r:10px;--r-lg:14px;--r-xl:18px;
+  --surface-hover:#F3F2EF;
+  --total-row-bg:#F2F1EE;
+  --ferie-text:#C2610A;
+  --primary-bg:#111110;--primary-fg:#FFFFFF;
+}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;padding:28px 14px 80px;-webkit-font-smoothing:antialiased;}
+.app{max-width:860px;width:100%;margin:0 auto;}
+
+.header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:18px;gap:10px;}
+.app-name{font-size:11px;font-weight:400;color:var(--text3);margin-bottom:5px;}
+.week-sub{font-size:28px;font-weight:700;letter-spacing:-0.04em;color:var(--text);line-height:1;}
+.header-actions{display:flex;gap:7px;}
+.btn{font-family:var(--sans);font-size:12px;font-weight:500;border-radius:var(--r);border:1px solid var(--border2);background:var(--surface);color:var(--text2);padding:7px 13px;cursor:pointer;white-space:nowrap;line-height:1;}
+.btn-primary{background:var(--primary-bg);color:var(--primary-fg);border-color:var(--primary-bg);}
+
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:14px;}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:13px 15px;}
+.stat-label{font-size:10px;font-weight:600;letter-spacing:0.09em;text-transform:uppercase;color:var(--text3);margin-bottom:5px;}
+.stat-val{font-family:var(--mono);font-size:32px;font-weight:600;letter-spacing:-0.03em;line-height:1;}
+.stat-val.pos{color:var(--green);}
+.stat-val.neg{color:var(--red);}
+.stat-val.bonus{color:var(--blue);}
+.stat.bonus-stat{background:var(--blue-bg);border-color:rgba(37,99,235,0.2);}
+.stat-sub{font-size:11px;color:var(--text3);margin-top:3px;font-family:var(--mono);}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);overflow:hidden;}
+
+.main-table{width:100%;border-collapse:collapse;table-layout:fixed;}
+.main-table colgroup col.lbl-col{width:90px;}
+
+.main-table thead th{
+  padding:10px 4px 9px;text-align:center;
+  font-size:11px;font-weight:600;color:var(--text2);
+  border-bottom:1px solid var(--border);background:var(--surface2);
+  overflow:hidden;position:relative;
+}
+.main-table thead th:first-child{text-align:left;padding-left:12px;color:var(--text4);font-weight:400;font-size:10px;}
+
+/* NOUVEAU : day-th-inner sans gap, day-actions en absolu */
+.day-th-inner{display:flex;flex-direction:column;align-items:center;}
+.day-name{font-size:11px;font-weight:600;color:var(--text2);white-space:nowrap;}
+.day-actions{position:absolute;right:4px;top:50%;transform:translateY(-50%);display:flex;gap:2px;align-items:center;}
+
+.btn-day{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:20px;height:20px;border-radius:4px;border:1px solid var(--border2);
+  background:transparent;color:var(--text3);
+  cursor:pointer;padding:0;font-family:var(--sans);font-weight:600;user-select:none;
+  opacity:0;transition:opacity .15s,color .12s,background .12s;
+}
+.day-th:hover .btn-day{opacity:1;}
+.btn-day:hover{color:var(--primary-fg);background:var(--primary-bg);border-color:var(--primary-bg);}
+
+/* NOUVEAU : sec-row vide = juste un séparateur visuel */
+.sec-row td{padding:8px 4px 2px 12px;font-size:9px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--text3);border-top:2px solid var(--bg);}
+.sec-row.first td{border-top:none;padding-top:6px;}
+
+.data-row td{padding:2px 3px;vertical-align:middle;height:30px;}
+.data-row td.row-label{text-align:right;padding-right:8px;padding-left:12px;font-size:11px;color:var(--text2);white-space:nowrap;}
+
+/* NOUVEAU : pause italic grisée */
+.data-row.pause-row td.row-label{color:var(--text3);font-size:10.5px;font-style:italic;font-weight:400;}
+
+.total-spacer td{padding:5px 0;background:transparent;}
+.total-row td{padding:9px 4px;text-align:center;background:var(--total-row-bg);}
+.total-row td:first-child{text-align:right;padding-right:8px;padding-left:12px;font-size:10px;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;color:var(--text3);}
+.day-total{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--text);display:block;}
+.day-total.empty{color:var(--text4);font-weight:400;}
+.day-target{display:block;font-size:9px;color:var(--text4);margin-top:1px;}
+
+.ti{
+  font-family:var(--mono);font-size:12px;font-weight:500;
+  width:100%;text-align:center;
+  background:var(--surface2);border:1px solid transparent;border-radius:6px;
+  padding:5px 2px;color:var(--text);outline:none;display:block;
+}
+
+/* NOUVEAU : auto-val pour la pause */
+.ti.auto-val{color:var(--text3);font-style:italic;background:transparent;border-color:transparent;}
+.ti.empty-val{color:var(--text4);background:transparent;border:1px dashed var(--border);}
+
+.hint{text-align:center;font-size:10.5px;color:var(--text4);margin-top:11px;}
+.hint code{font-family:var(--mono);font-size:10px;background:var(--surface2);border-radius:4px;padding:1px 4px;color:var(--text3);}
+
+/* Bandeau aperçu */
+.preview-banner{background:var(--blue-bg);border:1px solid rgba(37,99,235,0.2);border-radius:var(--r);padding:8px 14px;margin-bottom:18px;font-size:11px;color:var(--blue);font-weight:500;}
+</style>
+</head>
+<body>
+<div class="app">
+
+<div class="preview-banner">Aperçu des modifications — même CSS que l'app, données statiques</div>
+
+<div class="header">
+  <div>
+    <div class="app-name">Heures Hebdo</div>
+    <div class="week-sub">Semaine du 16 au 20 juin</div>
+  </div>
+  <div class="header-actions">
+    <button class="btn">Semaine type ▾</button>
+    <button class="btn btn-primary">Nouvelle semaine</button>
+  </div>
+</div>
+
+<div class="stats">
+  <div class="stat">
+    <div class="stat-label">Total semaine</div>
+    <div class="stat-val pos">35h00</div>
+    <div class="stat-sub">/ 35h</div>
+  </div>
+  <div class="stat bonus-stat">
+    <div class="stat-label">Delta / objectif</div>
+    <div class="stat-val bonus">+00:00</div>
+  </div>
+</div>
+
+<div class="card">
+<table class="main-table">
+  <colgroup><col class="lbl-col"><col><col><col><col><col></colgroup>
+  <thead>
+    <tr>
+      <th></th>
+      <th class="day-th">
+        <div class="day-th-inner"><span class="day-name">Lundi</span></div>
+        <div class="day-actions"><button class="btn-day">···</button></div>
+      </th>
+      <th class="day-th">
+        <div class="day-th-inner"><span class="day-name">Mardi</span></div>
+        <div class="day-actions"><button class="btn-day">···</button></div>
+      </th>
+      <th class="day-th">
+        <div class="day-th-inner"><span class="day-name">Mercredi</span></div>
+        <div class="day-actions"><button class="btn-day">···</button></div>
+      </th>
+      <th class="day-th">
+        <div class="day-th-inner"><span class="day-name">Jeudi</span></div>
+        <div class="day-actions"><button class="btn-day">···</button></div>
+      </th>
+      <th class="day-th">
+        <div class="day-th-inner"><span class="day-name">Vendredi</span></div>
+        <div class="day-actions"><button class="btn-day">···</button></div>
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    <!-- Séparateur visuel Matin (sans label) -->
+    <tr class="sec-row first"><td colspan="6"></td></tr>
+    <tr class="data-row">
+      <td class="row-label">Arrivée</td>
+      <td><div class="ti">09:00</div></td>
+      <td><div class="ti">09:00</div></td>
+      <td><div class="ti">08:30</div></td>
+      <td><div class="ti">09:00</div></td>
+      <td><div class="ti">08:30</div></td>
+    </tr>
+    <tr class="data-row">
+      <td class="row-label">Midi</td>
+      <td><div class="ti">12:00</div></td>
+      <td><div class="ti">12:00</div></td>
+      <td><div class="ti">12:30</div></td>
+      <td><div class="ti">12:00</div></td>
+      <td><div class="ti">11:30</div></td>
+    </tr>
+
+    <!-- Séparateur visuel Pause (sans label) -->
+    <tr class="sec-row"><td colspan="6"></td></tr>
+    <tr class="data-row pause-row">
+      <td class="row-label">Pause</td>
+      <td><div class="ti auto-val">1h00</div></td>
+      <td><div class="ti auto-val">1h00</div></td>
+      <td><div class="ti auto-val">1h00</div></td>
+      <td><div class="ti auto-val">1h00</div></td>
+      <td><div class="ti empty-val">--:--</div></td>
+    </tr>
+
+    <!-- Séparateur visuel Après-midi (sans label) -->
+    <tr class="sec-row"><td colspan="6"></td></tr>
+    <tr class="data-row">
+      <td class="row-label">Reprise</td>
+      <td><div class="ti">13:00</div></td>
+      <td><div class="ti">13:00</div></td>
+      <td><div class="ti">13:30</div></td>
+      <td><div class="ti">13:00</div></td>
+      <td><div class="ti empty-val">--:--</div></td>
+    </tr>
+    <tr class="data-row">
+      <td class="row-label">Départ</td>
+      <td><div class="ti">17:00</div></td>
+      <td><div class="ti">17:30</div></td>
+      <td><div class="ti">18:00</div></td>
+      <td><div class="ti">19:00</div></td>
+      <td><div class="ti empty-val">--:--</div></td>
+    </tr>
+
+    <tr class="total-spacer"><td colspan="6"></td></tr>
+
+    <tr class="total-row">
+      <td>Total</td>
+      <td><span class="day-total">7h00</span><span class="day-target">/ 8h</span></td>
+      <td><span class="day-total">7h30</span><span class="day-target">/ 8h</span></td>
+      <td><span class="day-total">8h30</span><span class="day-target">/ 8h</span></td>
+      <td><span class="day-total">9h00</span><span class="day-target">/ 8h</span></td>
+      <td><span class="day-total">3h00</span><span class="day-target">/ 3h</span></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p class="hint">Frappe libre : <code>730</code> → <code>07:30</code> &nbsp;·&nbsp; La pause se calcule automatiquement</p>
+
+</div>
+</body>
+</html>

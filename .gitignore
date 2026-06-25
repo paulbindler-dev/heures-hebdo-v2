@@ -1,0 +1,13 @@
+.vercel
+
+# macOS
+.DS_Store
+
+# Fichiers sensibles — ne jamais commiter
+Mdp.rtf
+
+# Claude Code (fichiers internes, régénérables)
+.claude/
+
+# Impeccable (snapshots de critique, régénérables)
+.impeccable/

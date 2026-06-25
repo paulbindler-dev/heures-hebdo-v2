@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Direction 2 — Les Jours</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:wght@600;700&display=swap">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --font-display: 'Lora', Georgia, 'Times New Roman', serif;
+  --font-body: -apple-system, system-ui, sans-serif;
+  --cream: #FAF8F4;
+  --card: #FFFFFF;
+  --text: #1C1917;
+  --text-2: #78716C;
+  --text-3: #A8A29E;
+  --border: #E7E5E0;
+  --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.06);
+  --green: #059669;
+  --green-bg: #F0FDF4;
+  --amber: #D97706;
+  --amber-bg: #FFFBEB;
+  --red: #DC2626;
+  --red-bg: #FEF2F2;
+  --today: #D97706;
+  --mono: 'SF Mono', 'Fira Code', 'Consolas', ui-monospace, monospace;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--cream);
+  color: var(--text);
+  min-height: 100vh;
+  padding: 48px 24px 80px;
+  -webkit-font-smoothing: antialiased;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: #FEF3C7;
+  border: 1px solid #FDE68A;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #92400E;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 32px;
+}
+
+.layout {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+/* Summary header */
+.summary {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 32px;
+  padding: 0 4px;
+}
+
+.summary-left {}
+
+.week-eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-3);
+  margin-bottom: 6px;
+}
+
+.week-heading {
+  font-size: 28px;
+  font-weight: 700;
+  font-family: var(--font-display);
+  color: var(--text);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.summary-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+/* Weekly ring */
+.ring-wrap {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.ring-svg {
+  transform: rotate(-90deg);
+}
+
+.ring-track { fill: none; stroke: var(--border); stroke-width: 5; }
+.ring-fill { fill: none; stroke: var(--amber); stroke-width: 5; stroke-linecap: round;
+  stroke-dasharray: 188.5;
+  stroke-dashoffset: 64.5; /* 65.7% done = 0.657 * 188.5 = 123.8, offset = 188.5-123.8 = 64.7 */
+}
+
+.ring-labels {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.ring-main {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+  font-family: var(--mono);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.ring-sub {
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+.ring-delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: var(--amber-bg);
+  border: 1px solid #FDE68A;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--amber);
+  font-family: var(--mono);
+}
+
+/* Days grid */
+.days-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+}
+
+.day-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px 16px 16px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.day-card.is-today {
+  border-color: var(--today);
+  box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.12), var(--shadow);
+}
+
+.day-card.is-future {
+  background: #FDFCFA;
+  border-style: dashed;
+}
+
+.day-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.day-name-wrap {}
+
+.day-abbr {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-3);
+  display: block;
+}
+
+.day-card.is-today .day-abbr { color: var(--today); }
+
+.day-num {
+  font-size: 28px;
+  font-weight: 700;
+  font-family: var(--font-display);
+  color: var(--text);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.day-card.is-today .day-num { color: var(--today); }
+.day-card.is-future .day-num { color: var(--text-3); }
+
+/* Mini day ring */
+.mini-ring { flex-shrink: 0; }
+.mini-ring-svg { transform: rotate(-90deg); }
+.mini-track { fill: none; stroke: var(--border); stroke-width: 3.5; }
+.mini-fill-neg  { fill: none; stroke: var(--red);   stroke-width: 3.5; stroke-linecap: round; }
+.mini-fill-ok   { fill: none; stroke: var(--green);  stroke-width: 3.5; stroke-linecap: round; }
+.mini-fill-plan { fill: none; stroke: var(--border); stroke-width: 3.5; stroke-linecap: round;
+  stroke-dasharray: 4 3; }
+.mini-fill-today { fill: none; stroke: var(--today); stroke-width: 3.5; stroke-linecap: round; }
+
+/* circumference for r=13: 2π×13 = 81.68 */
+
+/* Time slots */
+.slots {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.slot {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.slot-label {
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+.slot-times {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.slot-time {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.slot-time.future {
+  color: var(--text-3);
+  font-style: italic;
+}
+
+.slot-arrow {
+  font-size: 11px;
+  color: var(--border);
+}
+
+.slot-pause {
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+/* Day total */
+.day-footer {
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.footer-total {
+  font-family: var(--mono);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+
+.footer-total.future { color: var(--text-3); }
+
+.footer-delta {
+  display: inline-flex;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+}
+.delta-neg  { background: var(--red-bg);   color: var(--red); }
+.delta-ok   { background: var(--green-bg); color: var(--green); }
+.delta-plan { background: var(--cream);    color: var(--text-3); font-style: italic; border: 1px solid var(--border); }
+.delta-zero { background: var(--green-bg); color: var(--green); }
+
+/* Planned badge */
+.plan-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  color: var(--text-3);
+  font-style: italic;
+}
+
+/* Insight bar */
+.insight {
+  margin-top: 20px;
+  padding: 14px 18px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.insight-icon {
+  width: 32px;
+  height: 32px;
+  background: var(--amber-bg);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.insight-text {
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.insight-text strong { font-weight: 600; }
+.insight-text em { color: var(--text-2); font-style: normal; }
+
+.dir-label {
+  font-size: 11px;
+  color: var(--text-3);
+  text-align: center;
+  margin-top: 28px;
+}
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <div class="chip">Direction 2 — Les Jours · Things 3 / Cron</div>
+
+  <!-- Summary -->
+  <div class="summary">
+    <div class="summary-left">
+      <div class="week-eyebrow">Semaine 25</div>
+      <div class="week-heading">16 → 20 juin 2026</div>
+    </div>
+    <div class="summary-right">
+      <div class="ring-wrap">
+        <svg class="ring-svg" width="52" height="52" viewBox="0 0 52 52">
+          <circle class="ring-track" cx="26" cy="26" r="20"/>
+          <circle class="ring-fill" cx="26" cy="26" r="20"/>
+        </svg>
+        <div class="ring-labels">
+          <div class="ring-main">23h00</div>
+          <div class="ring-sub">sur 35h00</div>
+        </div>
+      </div>
+      <div class="ring-delta">
+        <svg width="8" height="8" viewBox="0 0 8 8"><path d="M4 7V1M1 4l3-3 3 3" stroke="#D97706" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+        −1h00 à rattraper
+      </div>
+    </div>
+  </div>
+
+  <!-- Days -->
+  <div class="days-grid">
+
+    <!-- Lundi -->
+    <div class="day-card">
+      <div class="day-top">
+        <div class="day-name-wrap">
+          <span class="day-abbr">Lundi</span>
+          <span class="day-num">16</span>
+        </div>
+        <svg class="mini-ring-svg" width="34" height="34" viewBox="0 0 34 34">
+          <circle class="mini-track" cx="17" cy="17" r="13"/>
+          <!-- 7h/8h = 87.5% → dashoffset = 81.68*(1-0.875) = 10.2 -->
+          <circle class="mini-fill-neg" cx="17" cy="17" r="13" stroke-dasharray="81.68" stroke-dashoffset="10.2"/>
+        </svg>
+      </div>
+      <div class="slots">
+        <div class="slot">
+          <span class="slot-label">Matin</span>
+          <div class="slot-times">
+            <span class="slot-time">09:00</span>
+            <span class="slot-arrow">→</span>
+            <span class="slot-time">12:00</span>
+          </div>
+        </div>
+        <div class="slot">
+          <span class="slot-label">Après-midi</span>
+          <div class="slot-times">
+            <span class="slot-time">13:00</span>
+            <span class="slot-arrow">→</span>
+            <span class="slot-time">17:00</span>
+          </div>
+        </div>
+        <div class="slot">
+          <span class="slot-pause">Pause 1h00 · calculée</span>
+        </div>
+      </div>
+      <div class="day-footer">
+        <span class="footer-total">7h00</span>
+        <span class="footer-delta delta-neg">−1h00</span>
+      </div>
+    </div>
+
+    <!-- Mardi -->
+    <div class="day-card">
+      <div class="day-top">
+        <div class="day-name-wrap">
+          <span class="day-abbr">Mardi</span>
+          <span class="day-num">17</span>
+        </div>
+        <svg class="mini-ring-svg" width="34" height="34" viewBox="0 0 34 34">
+          <circle class="mini-track" cx="17" cy="17" r="13"/>
+          <!-- 7.5/8 = 93.75% → dashoffset = 81.68*0.0625 = 5.1 -->
+          <circle class="mini-fill-neg" cx="17" cy="17" r="13" stroke-dasharray="81.68" stroke-dashoffset="5.1"/>
+        </svg>
+      </div>
+      <div class="slots">
+        <div class="slot">
+          <span class="slot-label">Matin</span>
+          <div class="slot-times">
+            <span class="slot-time">09:00</span>
+            <span class="slot-arrow">→</span>
+            <span class="slot-time">12:00</span>
+          </div>
+        </div>
+        <div class="slot">
+          <span class="slot-label">Après-midi</span>
+          <div class="slot-times">
+            <span class="slot-time">13:00</span>
+            <span class="slot-arrow">→</span>
+            <span class="slot-time">17:30</span>
+          </div>
+        </div>
+        <div class="slot">
+          <span class="slot-pause">Pause 1h00 · calculée</span>
+        </div>
+      </div>
+      <div class="day-footer">
+        <span class="footer-total">7h30</span>
+        <span class="footer-delta delta-neg">−0h30</span>
+      </div>
+    </div>
+
+    <!-- Mercredi (aujourd'hui) -->
+    <div class="day-card is-today">
+      <div class="day-top">
+        <div class="day-name-wrap">
+          <span class="day-abbr">Mercredi ·</span>
+          <span class="day-num">18</span>
+        </div>
+        <svg class="mini-ring-svg" width="34" height="34" viewBox="0 0 34 34">
+          <circle class="mini-track" cx="17" cy="17" r="13"/>
+          <!-- 8.5/8 = 106% → full ring + small overflow -->
+          <circle class="mini-fill-today" cx="17" cy="17" r="13" stroke-dasharray="81.68" stroke-dashoffset="-5"/>
+        </svg>
+      </div>
+      <div class="slots">
+        <div class="slot">
+          <span class="slot-label">Matin</span>
+          <div class="slot-times">
+            <span class="slot-time">08:30</span>
+            <span class="slot-arrow">→</span>
+            <span class="slot-time">12:30</span>
+          </div>
+        </div>
+        <div class="slot">
+          <span class="slot-label">Après-midi</span>
+          <div class="slot-times">
+            <span class="slot-time">13:30</span>
+            <span class="slot-arrow">→</span>
+            <span class="slot-time">18:00</span>
+          </div>
+        </div>
+        <div class="slot">
+          <span class="slot-pause">Pause 1h00 · calculée</span>
+        </div>
+      </div>
+      <div class="day-footer">
+        <span class="footer-total" style="color: var(--today);">8h30</span>
+        <span class="footer-delta delta-ok">+0h30</span>
+      </div>
+    </div>
+
+    <!-- Jeudi (planifié) -->
+    <div class="day-card is-future">
+      <div class="day-top">
+        <div class="day-name-wrap">
+          <span class="day-abbr">Jeudi</span>
+          <span class="day-num">19</span>
+        </div>
+        <svg class="mini-ring-svg" width="34" height="34" viewBox="0 0 34 34">
+          <circle class="mini-track" cx="17" cy="17" r="13"/>
+          <circle class="mini-fill-plan" cx="17" cy="17" r="13" stroke-dasharray="81.68" stroke-dashoffset="0"/>
+        </svg>
+      </div>
+      <div class="slots">
+        <div class="slot">
+          <span class="slot-label">Matin</span>
+          <div class="slot-times">
+            <span class="slot-time future">09:00</span>
+            <span class="slot-arrow">→</span>
+            <span class="slot-time future">12:00</span>
+          </div>
+        </div>
+        <div class="slot">
+          <span class="slot-label">Après-midi</span>
+          <div class="slot-times">
+            <span class="slot-time future">13:00</span>
+            <span class="slot-arrow">→</span>
+            <span class="slot-time future" style="color: var(--amber);">19:00</span>
+          </div>
+        </div>
+        <div class="slot">
+          <span class="slot-pause">+1h pour rattraper le retard</span>
+        </div>
+      </div>
+      <div class="day-footer">
+        <span class="footer-total future">9h00</span>
+        <span class="footer-delta delta-plan">planifié</span>
+      </div>
+    </div>
+
+    <!-- Vendredi (planifié) -->
+    <div class="day-card is-future">
+      <div class="day-top">
+        <div class="day-name-wrap">
+          <span class="day-abbr">Vendredi</span>
+          <span class="day-num">20</span>
+        </div>
+        <svg class="mini-ring-svg" width="34" height="34" viewBox="0 0 34 34">
+          <circle class="mini-track" cx="17" cy="17" r="13"/>
+          <circle class="mini-fill-plan" cx="17" cy="17" r="13" stroke-dasharray="81.68" stroke-dashoffset="0"/>
+        </svg>
+      </div>
+      <div class="slots">
+        <div class="slot">
+          <span class="slot-label">Matin</span>
+          <div class="slot-times">
+            <span class="slot-time future">08:30</span>
+            <span class="slot-arrow">→</span>
+            <span class="slot-time future">11:30</span>
+          </div>
+        </div>
+        <div class="slot">
+          <span class="slot-label">Après-midi</span>
+          <div class="slot-times">
+            <span class="slot-time future" style="color: var(--border);">—</span>
+          </div>
+        </div>
+        <div class="slot">
+          <span class="slot-pause">Journée courte · obj. 3h</span>
+        </div>
+      </div>
+      <div class="day-footer">
+        <span class="footer-total future">3h00</span>
+        <span class="footer-delta delta-plan">planifié</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Insight -->
+  <div class="insight">
+    <div class="insight-icon">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M8 2a4 4 0 0 1 2.5 7.1V11H5.5V9.1A4 4 0 0 1 8 2Z" stroke="#D97706" stroke-width="1.3" stroke-linejoin="round"/>
+        <path d="M5.5 13h5M6.5 15h3" stroke="#D97706" stroke-width="1.3" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="insight-text">
+      <strong>Jeudi prolongé à 19h00</strong> pour récupérer l'heure manquante.
+      <em>Si ce n'est pas possible, décalez à vendredi matin : partez à 14h30 au lieu de 11h30.</em>
+    </div>
+  </div>
+
+  <div class="dir-label">Parti pris : le jour comme unité de sens · Chaque journée se lit et se valide indépendamment</div>
+
+</div>
+</body>
+</html>
