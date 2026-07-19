@@ -47,6 +47,13 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 @keyframes btn-shimmer{0%{transform:translateX(-100%) skewX(-15deg)}100%{transform:translateX(250%) skewX(-15deg)}}
 .btn-primary::after{content:'';position:absolute;top:0;left:0;width:40%;height:100%;background:linear-gradient(to right,transparent,rgba(255,255,255,0.18),transparent);transform:translateX(-100%) skewX(-15deg);pointer-events:none;}
 .btn-primary:hover::after{animation:btn-shimmer 0.55s ease-out forwards;}
+.btn-week-nav{}
+.changelog-modal{max-width:380px;text-align:left;}
+.changelog-msg{text-align:left;font-size:13px;}
+.changelog-title{font-weight:600;font-size:15px;margin-bottom:10px;}
+.changelog-body{color:var(--text2);margin-bottom:12px;line-height:1.6;}
+.changelog-date{font-size:10px;font-weight:600;letter-spacing:0.09em;text-transform:uppercase;color:var(--text3);margin-bottom:6px;}
+.changelog-item{margin-bottom:5px;}
 
 /* Stats */
 .stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:14px;}
@@ -374,12 +381,12 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 </div>
 
 <div class="overlay" id="changelogOverlay">
-  <div class="confirm-modal" style="max-width:380px;text-align:left;">
-    <div class="confirm-msg" style="text-align:left;font-size:13px;">
-      <div style="font-weight:600;font-size:15px;margin-bottom:10px;">Nouveautés</div>
-      <div style="color:var(--text2);margin-bottom:12px;line-height:1.6;">
-        <div style="font-size:10px;font-weight:600;letter-spacing:0.09em;text-transform:uppercase;color:var(--text3);margin-bottom:6px;">Juillet 2026</div>
-        <div style="margin-bottom:5px;">· Prépare la semaine suivante à l'avance</div>
+  <div class="confirm-modal changelog-modal">
+    <div class="confirm-msg changelog-msg">
+      <div class="changelog-title">Nouveautés</div>
+      <div class="changelog-body">
+        <div class="changelog-date">Juillet 2026</div>
+        <div class="changelog-item">· Prépare la semaine suivante à l'avance</div>
       </div>
     </div>
     <div class="confirm-actions">
