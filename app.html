@@ -373,12 +373,28 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
   </div>
 </div>
 
+<div class="overlay" id="changelogOverlay">
+  <div class="confirm-modal" style="max-width:380px;text-align:left;">
+    <div class="confirm-msg" style="text-align:left;font-size:13px;">
+      <div style="font-weight:600;font-size:15px;margin-bottom:10px;">Nouveautés</div>
+      <div style="color:var(--text2);margin-bottom:12px;line-height:1.6;">
+        <div style="font-size:10px;font-weight:600;letter-spacing:0.09em;text-transform:uppercase;color:var(--text3);margin-bottom:6px;">Juillet 2026</div>
+        <div style="margin-bottom:5px;">· Prépare la semaine suivante à l'avance</div>
+      </div>
+    </div>
+    <div class="confirm-actions">
+      <button class="btn btn-primary" id="changelogOk">Compris</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
 // --- Supabase ---
 const SUPABASE_URL = 'https://hmznrhoxeptkmstyavbc.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_pWEsnpJBGmTpF-3HSqpSxg_fufOVNrF';
+const CHANGELOG_VERSION = '2';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // Slug from URL — redirect to welcome if missing
@@ -623,6 +639,11 @@ document.getElementById('confirmCancel').addEventListener('click',()=>{
 });
 document.getElementById('confirmOverlay').addEventListener('click',e=>{
   if(e.target===e.currentTarget){document.getElementById('confirmOverlay').classList.remove('open');_confirmCb=null;}
+});
+
+document.getElementById('changelogOk').addEventListener('click',()=>{
+  localStorage.setItem('heures_changelog_seen',CHANGELOG_VERSION);
+  document.getElementById('changelogOverlay').classList.remove('open');
 });
 
 function showToast(msg){
@@ -1103,6 +1124,10 @@ async function init(){
     return;
   }
   document.getElementById('loadingScreen').remove();
+  const seenV = localStorage.getItem('heures_changelog_seen');
+  if (seenV !== CHANGELOG_VERSION) {
+    document.getElementById('changelogOverlay').classList.add('open');
+  }
   const fu = localStorage.getItem('heures_first_use');
   if (!fu) localStorage.setItem('heures_first_use', Date.now());
   else if (Date.now() - Number(fu) >= 21 * 24 * 60 * 60 * 1000)
