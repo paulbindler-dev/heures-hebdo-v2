@@ -294,6 +294,8 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
       </div>
     </div>
     <div class="header-actions">
+      <button class="btn btn-week-nav" id="btnPrevWeek" style="display:none">← Cette semaine</button>
+      <button class="btn btn-week-nav" id="btnNextWeek">Semaine suivante →</button>
       <div class="dropdown">
         <button class="btn">Semaine type ▾</button>
         <div class="dropdown-menu">
@@ -398,13 +400,13 @@ async function loadWeek(wk) {
 }
 async function reloadWeek() {
   try {
-    const weekData = await loadWeek(WK);
+    const weekData = await loadWeek(VIEW_WK);
     if (!weekData) return;
-    data[WK] = weekData;
+    data[VIEW_WK] = weekData;
     DAYS.forEach(d => {
-      if (!data[WK][d]) data[WK][d] = {a1:'',d1:'',a2:'',d2:'',extras:[],ferie:false};
-      if (!data[WK][d].extras) data[WK][d].extras = [];
-      if (data[WK][d].ferie === undefined) data[WK][d].ferie = false;
+      if (!data[VIEW_WK][d]) data[VIEW_WK][d] = {a1:'',d1:'',a2:'',d2:'',extras:[],ferie:false};
+      if (!data[VIEW_WK][d].extras) data[VIEW_WK][d].extras = [];
+      if (data[VIEW_WK][d].ferie === undefined) data[VIEW_WK][d].ferie = false;
     });
     render();
   } catch (_) {}
@@ -476,9 +478,11 @@ function weekLabel(k){
   const endStr=f.toLocaleDateString('fr-FR',{day:'numeric',month:'long'});
   return`Semaine du ${m.getDate()} au ${endStr}`;
 }
+function nextWeekKey(k){const d=new Date(k);d.setDate(d.getDate()+7);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
 
 // --- App state ---
-const WK=weekKey();
+const CURRENT_WK=weekKey();
+let VIEW_WK=weekKey();
 let data={};
 let currentTpl=null;
 let copiedDay=null;
@@ -509,7 +513,7 @@ function autoPause(day){
 }
 function getObjective(){
   let obj=35*60;
-  DAYS.forEach((dk,di)=>{if(data[WK][dk].ferie)obj-=DAY_TARGET[di];});
+  DAYS.forEach((dk,di)=>{if(data[VIEW_WK][dk].ferie)obj-=DAY_TARGET[di];});
   return obj;
 }
 
@@ -673,9 +677,9 @@ function buildTable(tbodyEl,theadEl,dayData,opts={}){
         th.style.cursor='pointer';
         th.addEventListener('click',e=>{
           if(e.target.closest('.btn-day'))return;
-          const src=JSON.parse(JSON.stringify(data[WK][copiedDay]));
-          data[WK][dk]={...src,extras:src.extras.map(ex=>({...ex})),ferie:data[WK][dk].ferie};
-          saveWeek(WK,data[WK]);render();
+          const src=JSON.parse(JSON.stringify(data[VIEW_WK][copiedDay]));
+          data[VIEW_WK][dk]={...src,extras:src.extras.map(ex=>({...ex})),ferie:data[VIEW_WK][dk].ferie};
+          saveWeek(VIEW_WK,data[VIEW_WK]);render();
           showToast('Collé sur '+DAY_LABELS[di]);
         });
         th.title='Cliquer pour coller';
@@ -746,7 +750,7 @@ function buildTable(tbodyEl,theadEl,dayData,opts={}){
               updateTplStats(dayData);
               setTimeout(applyTableWidths,0);
             }
-            else{saveWeek(WK,data[WK]);rerenderTotals(data[WK],'');updateStats();updatePauseDisplay(dk);}
+            else{saveWeek(VIEW_WK,data[VIEW_WK]);rerenderTotals(data[VIEW_WK],'');updateStats();updatePauseDisplay(dk);}
           },{tabday:isT?null:dk,tabfield:isT?null:row.key});
           td.appendChild(w);
         }
@@ -773,8 +777,8 @@ function buildTable(tbodyEl,theadEl,dayData,opts={}){
             const ex=(dayData[dk].extras||[])[i];
             if(!ex){td.innerHTML='<span style="color:var(--text4);font-family:var(--mono);font-size:12px;display:block;text-align:center">—</span>';tr.appendChild(td);return;}
             const w=makeInput(ex[field],pickerTimes(field==='a'?'a1':'d2',di),v=>{
-              ex[field]=v;saveWeek(WK,data[WK]);rerenderTotals(data[WK],'');updateStats();
-            },field==='a'?{removable:true,onRemove:()=>{dayData[dk].extras.splice(i,1);saveWeek(WK,data[WK]);render();}}:{});
+              ex[field]=v;saveWeek(VIEW_WK,data[VIEW_WK]);rerenderTotals(data[VIEW_WK],'');updateStats();
+            },field==='a'?{removable:true,onRemove:()=>{dayData[dk].extras.splice(i,1);saveWeek(VIEW_WK,data[VIEW_WK]);render();}}:{});
             td.appendChild(w);tr.appendChild(td);
           });
           tbodyEl.appendChild(tr);
@@ -812,7 +816,7 @@ function rerenderTotals(dayData,sfx){
 }
 
 function updateStats(){
-  const totals=DAYS.map(d=>calcDay(data[WK][d]));
+  const totals=DAYS.map(d=>calcDay(data[VIEW_WK][d]));
   const filled=totals.filter(t=>t!==null);
   const total=filled.reduce((s,t)=>s+t,0);
   const obj=getObjective();
@@ -857,13 +861,13 @@ function applyPause(dk,pauseVal,dayData,isT){
   const day=dayData[dk],d1=parse(day.d1),p=parse(pauseVal);
   if(d1!==null&&p!==null)day.a2=fmt(d1+p);
   if(isT)updateTplStats(dayData);
-  else{saveWeek(WK,data[WK]);updateFieldDisplay(dk,'a2',day.a2);rerenderTotals(data[WK],'');updateStats();}
+  else{saveWeek(VIEW_WK,data[VIEW_WK]);updateFieldDisplay(dk,'a2',day.a2);rerenderTotals(data[VIEW_WK],'');updateStats();}
 }
 
 function updatePauseDisplay(dk){
   const inp=document.querySelector(`[data-tabday="${dk}"][data-tabfield="pause"]`);
   if(!inp)return;
-  const pAuto=autoPause(data[WK][dk]);
+  const pAuto=autoPause(data[VIEW_WK][dk]);
   inp.value=pAuto||'';
   if(pAuto)inp.classList.add('auto-val');else inp.classList.remove('auto-val');
 }
@@ -896,13 +900,13 @@ function openCtxMenu(e,dk,di,dayData,isT){
       else{copiedDay=dk;render();showToast(`${DAY_LABELS[di]} copié — clique sur un autre jour`);}
     });
     const ferieLabel=dayData[dk].ferie?'Retirer férié':'Marquer férié';
-    item('<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>',ferieLabel,'',()=>{dayData[dk].ferie=!dayData[dk].ferie;saveWeek(WK,data[WK]);render();});
-    item('<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>','Ajouter une session','',()=>{dayData[dk].extras.push({a:'',d:''});saveWeek(WK,data[WK]);render();});
+    item('<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>',ferieLabel,'',()=>{dayData[dk].ferie=!dayData[dk].ferie;saveWeek(VIEW_WK,data[VIEW_WK]);render();});
+    item('<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>','Ajouter une session','',()=>{dayData[dk].extras.push({a:'',d:''});saveWeek(VIEW_WK,data[VIEW_WK]);render();});
     const sep=document.createElement('div');sep.className='ctx-sep';menu.appendChild(sep);
     const _dk=dk;
     item('<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>','Effacer le jour','danger',()=>{
-      data[WK][_dk]={a1:'',d1:'',a2:'',d2:'',extras:[],ferie:false};
-      saveWeek(WK,data[WK]);render();
+      data[VIEW_WK][_dk]={a1:'',d1:'',a2:'',d2:'',extras:[],ferie:false};
+      saveWeek(VIEW_WK,data[VIEW_WK]);render();
     });
   } else {
     const copyLabel=tplCopiedDay===dk?'Annuler la copie':'Copier ce jour';
@@ -950,10 +954,12 @@ function applyTableWidths(){
 }
 
 function render(){
-  document.getElementById('weekSub').textContent=weekLabel(WK);
-  buildTable(document.getElementById('tbody'),document.getElementById('thead-row'),data[WK]);
-  rerenderTotals(data[WK],'');
+  const isViewingNext=VIEW_WK!==CURRENT_WK;
+  document.getElementById('weekSub').textContent=weekLabel(VIEW_WK)+(isViewingNext?' ·  à venir':'');
+  buildTable(document.getElementById('tbody'),document.getElementById('thead-row'),data[VIEW_WK]);
+  rerenderTotals(data[VIEW_WK],'');
   updateStats();
+  updateWeekNav();
   setTimeout(applyTableWidths,0);
 }
 
@@ -962,7 +968,7 @@ let tplWD=null;
 document.getElementById('btnSaveAsTpl').addEventListener('click',()=>{
   showConfirm('Enregistrer les horaires de cette semaine comme semaine type ?','Enregistrer',()=>{
     const tpl={};
-    DAYS.forEach(d=>{const day=data[WK][d];tpl[d]={a1:day.a1||'',d1:day.d1||'',a2:day.a2||'',d2:day.d2||''};});
+    DAYS.forEach(d=>{const day=data[VIEW_WK][d];tpl[d]={a1:day.a1||'',d1:day.d1||'',a2:day.a2||'',d2:day.d2||''};});
     currentTpl=tpl;saveTemplate(tpl);showToast('Semaine type mise à jour ✓');
   });
 });
@@ -986,12 +992,54 @@ document.getElementById('overlay').addEventListener('click',e=>{if(e.target===e.
 document.getElementById('btnNew').addEventListener('click',()=>{
   showConfirm('Recharger la semaine type ? Les heures saisies seront effacées.','Recharger',()=>{
     const tpl=JSON.parse(JSON.stringify(currentTpl));
-    DAYS.forEach(d=>{const dt=tpl[d]||{a1:'',d1:'',a2:'',d2:''};data[WK][d]={...dt,extras:[],ferie:false};});
-    saveWeek(WK,data[WK]);copiedDay=null;render();
+    DAYS.forEach(d=>{const dt=tpl[d]||{a1:'',d1:'',a2:'',d2:''};data[VIEW_WK][d]={...dt,extras:[],ferie:false};});
+    saveWeek(VIEW_WK,data[VIEW_WK]);copiedDay=null;render();
   },true);
 });
 
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&copiedDay){copiedDay=null;render();}});
+
+async function applyTemplateToWeek(wk){
+  const tpl=JSON.parse(JSON.stringify(currentTpl));
+  data[wk]={};
+  DAYS.forEach(d=>{const dt=tpl[d]||{a1:'',d1:'',a2:'',d2:''};data[wk][d]={...dt,extras:[],ferie:false};});
+  const holidays=getFrenchHolidays(new Date(wk).getFullYear());
+  DAYS.forEach((dk,di)=>{
+    const d=new Date(wk);d.setDate(d.getDate()+di);
+    const k=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    if(holidays.has(k))data[wk][dk].ferie=true;
+  });
+  await saveWeek(wk,data[wk]);
+}
+
+async function switchWeek(newWK){
+  VIEW_WK=newWK;
+  if(!data[VIEW_WK]){
+    const wd=await loadWeek(VIEW_WK);
+    if(wd){
+      data[VIEW_WK]=wd;
+      DAYS.forEach(d=>{
+        if(!data[VIEW_WK][d])data[VIEW_WK][d]={a1:'',d1:'',a2:'',d2:'',extras:[],ferie:false};
+        if(!data[VIEW_WK][d].extras)data[VIEW_WK][d].extras=[];
+        if(data[VIEW_WK][d].ferie===undefined)data[VIEW_WK][d].ferie=false;
+      });
+    } else {
+      await applyTemplateToWeek(VIEW_WK);
+    }
+  }
+  updateWeekNav();
+  render();
+  applyTableWidths();
+}
+
+function updateWeekNav(){
+  const isNext=VIEW_WK!==CURRENT_WK;
+  document.getElementById('btnPrevWeek').style.display=isNext?'':'none';
+  document.getElementById('btnNextWeek').style.display=isNext?'none':'';
+}
+
+document.getElementById('btnNextWeek').addEventListener('click',()=>switchWeek(nextWeekKey(CURRENT_WK)));
+document.getElementById('btnPrevWeek').addEventListener('click',()=>switchWeek(CURRENT_WK));
 
 // Re-apply on resize (handles split-view in Chrome)
 const _ro=new ResizeObserver(()=>applyTableWidths());
@@ -1030,20 +1078,16 @@ async function init(){
   try {
     await ensureUser();
     currentTpl = await loadTemplate();
-    const weekData = await loadWeek(WK);
-    data[WK] = weekData || {};
-    DAYS.forEach(d=>{
-      if(!data[WK][d])data[WK][d]={a1:'',d1:'',a2:'',d2:'',extras:[],ferie:false};
-      if(!data[WK][d].extras)data[WK][d].extras=[];
-      if(data[WK][d].ferie===undefined)data[WK][d].ferie=false;
-    });
-    if(!weekData){
-      const holidays=getFrenchHolidays(new Date().getFullYear());
-      DAYS.forEach((dk,di)=>{
-        const d=new Date(WK);d.setDate(d.getDate()+di);
-        const k=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-        if(holidays.has(k))data[WK][dk].ferie=true;
+    const weekData = await loadWeek(VIEW_WK);
+    if(weekData){
+      data[VIEW_WK]=weekData;
+      DAYS.forEach(d=>{
+        if(!data[VIEW_WK][d])data[VIEW_WK][d]={a1:'',d1:'',a2:'',d2:'',extras:[],ferie:false};
+        if(!data[VIEW_WK][d].extras)data[VIEW_WK][d].extras=[];
+        if(data[VIEW_WK][d].ferie===undefined)data[VIEW_WK][d].ferie=false;
       });
+    } else {
+      await applyTemplateToWeek(VIEW_WK);
     }
     render();
     applyTableWidths();
@@ -1069,7 +1113,7 @@ async function init(){
 function subscribeRealtime() {
   sb.channel('week-sync')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'weeks', filter: `slug=eq.${SLUG}` }, payload => {
-      if (payload.new?.week_key !== WK) return;
+      if (payload.new?.week_key !== VIEW_WK) return;
       if (!payload.new?.data) return;
       const incoming = payload.new.data;
       DAYS.forEach(d => {
@@ -1077,7 +1121,7 @@ function subscribeRealtime() {
         if (!incoming[d].extras) incoming[d].extras = [];
         if (incoming[d].ferie === undefined) incoming[d].ferie = false;
       });
-      data[WK] = incoming;
+      data[VIEW_WK] = incoming;
       render();
     })
     .subscribe();
